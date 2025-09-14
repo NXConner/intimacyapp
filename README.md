@@ -50,4 +50,5 @@ Open http://localhost:5175
 A simple GitHub Actions workflow builds the solution on pushes/PRs.
 
 ## License
-MIT (replace as needed).
+MIT (replace as needed).# Windows and Android platform stubs created.
+# These are not added to the .NET solution/CI.
