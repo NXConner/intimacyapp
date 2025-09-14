@@ -7,6 +7,8 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "src", "src", "{F88B54A8-178
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "IntimacyAI.Server", "src\Server\IntimacyAI.Server.csproj", "{D35D30D4-8011-4D3F-ABD7-0ED37E203506}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "IntimacyAI.Client", "src\Client\IntimacyAI.Client.csproj", "{CA3C74E0-6FE2-4E9C-B76E-B791B528F6B0}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -20,8 +22,13 @@ Global
 		{D35D30D4-8011-4D3F-ABD7-0ED37E203506}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{D35D30D4-8011-4D3F-ABD7-0ED37E203506}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{D35D30D4-8011-4D3F-ABD7-0ED37E203506}.Release|Any CPU.Build.0 = Release|Any CPU
+		{CA3C74E0-6FE2-4E9C-B76E-B791B528F6B0}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{CA3C74E0-6FE2-4E9C-B76E-B791B528F6B0}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{CA3C74E0-6FE2-4E9C-B76E-B791B528F6B0}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{CA3C74E0-6FE2-4E9C-B76E-B791B528F6B0}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(NestedProjects) = preSolution
 		{D35D30D4-8011-4D3F-ABD7-0ED37E203506} = {F88B54A8-178D-4109-B594-BC4D42605959}
+		{CA3C74E0-6FE2-4E9C-B76E-B791B528F6B0} = {F88B54A8-178D-4109-B594-BC4D42605959}
 	EndGlobalSection
 EndGlobal

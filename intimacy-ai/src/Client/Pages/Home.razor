@@ -1,0 +1,122 @@
+@page "/"
+@using System.Net.Http.Json
+
+<PageTitle>Dashboard</PageTitle>
+
+<h1>Intimacy AI Dashboard</h1>
+
+<p>
+    <em>Status:</em> @statusMessage
+</p>
+
+<div class="card">
+    <h3>Recent Analytics</h3>
+    <button class="btn btn-primary" @onclick="LoadAnalytics">Refresh</button>
+    <ul>
+        @if (analytics is not null)
+        {
+            foreach (var a in analytics)
+            {
+                <li>@a.featureUsed (@a.platform) - @a.usageDurationSeconds s</li>
+            }
+        }
+    </ul>
+    <button class="btn" @onclick="PostSample">Post sample</button>
+    <p>@postMessage</p>
+    
+    <h3>Model Performance</h3>
+    <button class="btn btn-primary" @onclick="LoadModelPerf">Refresh</button>
+    <ul>
+        @if (perf is not null)
+        {
+            foreach (var p in perf)
+            {
+                <li>@p.modelVersion - acc: @p.accuracyMetricsJson</li>
+            }
+        }
+    </ul>
+</div>
+
+@code {
+    string statusMessage = "Loading...";
+    string postMessage = string.Empty;
+
+    List<AnalyticsDto>? analytics;
+    List<ModelPerfDto>? perf;
+
+    [Inject] HttpClient Http { get; set; } = default!;
+
+    protected override async Task OnInitializedAsync()
+    {
+        try
+        {
+            var health = await Http.GetFromJsonAsync<object>("/health");
+            statusMessage = "OK";
+        }
+        catch (Exception ex)
+        {
+            statusMessage = $"API error: {ex.Message}";
+        }
+        await LoadAnalytics();
+        await LoadModelPerf();
+    }
+
+    private async Task LoadAnalytics()
+    {
+        try
+        {
+            analytics = await Http.GetFromJsonAsync<List<AnalyticsDto>>("/api/analytics");
+        }
+        catch
+        {
+            analytics = new();
+        }
+    }
+
+    private async Task LoadModelPerf()
+    {
+        try
+        {
+            perf = await Http.GetFromJsonAsync<List<ModelPerfDto>>("/api/model-performance");
+        }
+        catch
+        {
+            perf = new();
+        }
+    }
+
+    private async Task PostSample()
+    {
+        try
+        {
+            var payload = new { anonymousUserId = "web-anon", featureUsed = "visit", usageDurationSeconds = 1, platform = "web", appVersion = "0.0.1" };
+            var res = await Http.PostAsJsonAsync("/api/analytics", payload);
+            postMessage = res.IsSuccessStatusCode ? "Posted" : $"Failed ({(int)res.StatusCode})";
+            await LoadAnalytics();
+        }
+        catch (Exception ex)
+        {
+            postMessage = $"Error: {ex.Message}";
+        }
+    }
+
+    public sealed class AnalyticsDto
+    {
+        public int id { get; set; }
+        public string? anonymousUserId { get; set; }
+        public string? featureUsed { get; set; }
+        public int? usageDurationSeconds { get; set; }
+        public string? platform { get; set; }
+        public string? appVersion { get; set; }
+        public DateTime createdAtUtc { get; set; }
+    }
+
+    public sealed class ModelPerfDto
+    {
+        public int id { get; set; }
+        public string? modelVersion { get; set; }
+        public string? accuracyMetricsJson { get; set; }
+        public string? performanceMetricsJson { get; set; }
+        public DateTime createdAtUtc { get; set; }
+    }
+}
