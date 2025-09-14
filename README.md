@@ -38,6 +38,8 @@ Open http://localhost:5175
 - Projects:
   - `src/Server` - ASP.NET Core minimal API, EF Core SQLite
   - `src/Client` - Blazor WebAssembly
+  - `platform/windows/WpfApp` - Windows WPF stub app (not in solution)
+  - `platform/android` - Android Kotlin/Compose stub app (standalone Gradle)
 
 ### Database
 - SQLite file: `src/Server/app.db`
@@ -50,5 +52,23 @@ Open http://localhost:5175
 A simple GitHub Actions workflow builds the solution on pushes/PRs.
 
 ## License
-MIT (replace as needed).# Windows and Android platform stubs created.
-# These are not added to the .NET solution/CI.
+MIT (replace as needed).
+
+## Windows WPF App
+Requires Windows with .NET 8 SDK and Windows 10 SDK.
+
+From `platform/windows/WpfApp`:
+```
+dotnet restore
+dotnet build -c Release
+# Run from Windows shell:
+dotnet run -c Release
+```
+App calls API at `http://localhost:5087` and uses `X-API-Key: dev-key`.
+
+## Android App (Stub)
+Requires Android Studio / Gradle.
+
+From `platform/android` in Android environment:
+- Open the folder in Android Studio and let it generate Gradle wrapper and sync.
+- Use an emulator. The app posts to `http://10.0.2.2:5087` with `X-API-Key: dev-key`.
