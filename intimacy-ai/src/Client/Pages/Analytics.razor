@@ -1,0 +1,46 @@
+@page "/analytics"
+@using System.Net.Http.Json
+@inject IntimacyAI.Client.Services.SettingsService AppSettingsService
+
+<h3>Analytics</h3>
+
+@if (items is null)
+{
+    <p>Loading...</p>
+}
+else
+{
+    <ul>
+        @foreach (var a in items)
+        {
+            <li>#@a.id @a.featureUsed - @a.platform (@a.usageDurationSeconds s)</li>
+        }
+    </ul>
+}
+
+@code {
+    List<AnalyticsDto>? items;
+    [Inject] HttpClient Http { get; set; } = default!;
+    string? apiKey;
+
+    protected override async Task OnInitializedAsync()
+    {
+        apiKey = await AppSettingsService.GetApiKeyAsync();
+        using var req = new HttpRequestMessage(HttpMethod.Get, "/api/analytics");
+        if (!string.IsNullOrWhiteSpace(apiKey)) req.Headers.Add("X-API-Key", apiKey);
+        using var res = await Http.SendAsync(req);
+        res.EnsureSuccessStatusCode();
+        items = await res.Content.ReadFromJsonAsync<List<AnalyticsDto>>();
+    }
+
+    public sealed class AnalyticsDto
+    {
+        public int id { get; set; }
+        public string? anonymousUserId { get; set; }
+        public string? featureUsed { get; set; }
+        public int? usageDurationSeconds { get; set; }
+        public string? platform { get; set; }
+        public string? appVersion { get; set; }
+        public DateTime createdAtUtc { get; set; }
+    }
+}

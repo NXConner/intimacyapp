@@ -1,0 +1,58 @@
+@page "/analyze"
+@using Microsoft.AspNetCore.SignalR.Client
+@using Microsoft.AspNetCore.Components.Forms
+@inject IntimacyAI.Client.Services.SettingsService AppSettingsService
+
+<h3>Analyze</h3>
+
+<InputFile OnChange="OnFileChange" />
+<button class="btn btn-primary" @onclick="Upload" disabled="@(!canUpload)">Upload</button>
+<p>@status</p>
+
+@code {
+    IBrowserFile? file;
+    bool canUpload => file is not null;
+    string status = "";
+    HubConnection? hub;
+    string? apiKey;
+
+    [Inject] HttpClient Http { get; set; } = default!;
+
+    protected override async Task OnInitializedAsync()
+    {
+        apiKey = await AppSettingsService.GetApiKeyAsync();
+        var baseUrl = Http.BaseAddress?.ToString()?.TrimEnd('/');
+        hub = new HubConnectionBuilder()
+            .WithUrl($"{baseUrl}/hubs/analysis")
+            .WithAutomaticReconnect()
+            .Build();
+        hub.On<string>("analysisStarted", id => status = $"Started: {id}");
+        hub.On<string>("analysisCompleted", id => status = $"Completed: {id}");
+        await hub.StartAsync();
+    }
+
+    private void OnFileChange(InputFileChangeEventArgs e)
+    {
+        file = e.File;
+        status = file is null ? "" : $"Selected {file.Name}";
+    }
+
+    private async Task Upload()
+    {
+        if (file is null) return;
+        try
+        {
+            var content = new MultipartFormDataContent();
+            using var stream = file.OpenReadStream(maxAllowedSize: 20 * 1024 * 1024);
+            content.Add(new StreamContent(stream), "file", file.Name);
+            using var req = new HttpRequestMessage(HttpMethod.Post, "/api/analyze") { Content = content };
+            if (!string.IsNullOrWhiteSpace(apiKey)) req.Headers.Add("X-API-Key", apiKey);
+            using var res = await Http.SendAsync(req);
+            status = res.IsSuccessStatusCode ? "Uploaded" : $"Failed ({(int)res.StatusCode})";
+        }
+        catch (Exception ex)
+        {
+            status = $"Error: {ex.Message}";
+        }
+    }
+}

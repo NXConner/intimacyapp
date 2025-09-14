@@ -18,3 +18,5 @@ jobs:
         run: dotnet restore intimacy-ai/IntimacyAI.sln
       - name: Build
         run: dotnet build intimacy-ai/IntimacyAI.sln -c Release --no-restore
+      - name: Test
+        run: dotnet test intimacy-ai/IntimacyAI.sln -c Release --no-build
