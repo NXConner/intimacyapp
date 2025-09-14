@@ -36,10 +36,13 @@ builder.Services.AddSwaggerGen(c =>
 builder.Services.AddDbContext<AppDbContext>(options =>
     options.UseSqlite(builder.Configuration.GetConnectionString("DefaultSqlite"))
 );
+var allowedOrigins = builder.Configuration.GetSection("Cors:AllowedOrigins").Get<string[]>() ?? new[] { "*" };
 builder.Services.AddCors(options =>
 {
-    options.AddPolicy("DevAllowAll", policy =>
-        policy.AllowAnyOrigin().AllowAnyHeader().AllowAnyMethod());
+    options.AddPolicy("DefaultCors", policy =>
+        policy.WithOrigins(allowedOrigins)
+              .AllowAnyHeader()
+              .AllowAnyMethod());
 });
 builder.Services.AddSignalR();
 builder.Services.AddRateLimiter(_ => _.AddFixedWindowLimiter("fixed", options =>
@@ -71,26 +74,39 @@ using (var scope = app.Services.CreateScope())
     db.Database.Migrate();
 }
 
-app.UseCors("DevAllowAll");
+app.UseCors("DefaultCors");
+app.Use(async (ctx, next) =>
+{
+    ctx.Response.Headers["X-Content-Type-Options"] = "nosniff";
+    ctx.Response.Headers["X-Frame-Options"] = "DENY";
+    ctx.Response.Headers["Referrer-Policy"] = "no-referrer";
+    await next();
+});
 app.UseRateLimiter();
 app.UseMiddleware<ApiKeyMiddleware>();
 
-app.MapGet("/api/analytics", async (AppDbContext db) =>
+app.MapGet("/api/analytics", async (int? skip, int? take, AppDbContext db) =>
 {
-    return await db.UsageAnalytics.OrderByDescending(x => x.Id).Take(100).ToListAsync();
+    var s = Math.Max(0, skip ?? 0);
+    var t = Math.Clamp(take ?? 50, 1, 200);
+    return await db.UsageAnalytics.OrderByDescending(x => x.Id).Skip(s).Take(t).ToListAsync();
 }).WithOpenApi();
 
 app.MapPost("/api/analytics", async (UsageAnalytics payload, AppDbContext db) =>
 {
+    if (string.IsNullOrWhiteSpace(payload.FeatureUsed) || string.IsNullOrWhiteSpace(payload.Platform))
+        return Results.BadRequest("featureUsed and platform are required");
     payload.CreatedAtUtc = DateTime.UtcNow;
     db.UsageAnalytics.Add(payload);
     await db.SaveChangesAsync();
     return Results.Created($"/api/analytics/{payload.Id}", payload);
 }).WithOpenApi();
 
-app.MapGet("/api/model-performance", async (AppDbContext db) =>
+app.MapGet("/api/model-performance", async (int? skip, int? take, AppDbContext db) =>
 {
-    return await db.ModelPerformances.OrderByDescending(x => x.Id).Take(100).ToListAsync();
+    var s = Math.Max(0, skip ?? 0);
+    var t = Math.Clamp(take ?? 50, 1, 200);
+    return await db.ModelPerformances.OrderByDescending(x => x.Id).Skip(s).Take(t).ToListAsync();
 }).WithOpenApi();
 
 app.MapPost("/api/model-performance", async (ModelPerformance payload, AppDbContext db) =>
@@ -183,4 +199,19 @@ app.MapGet("/health", async (AppDbContext db) =>
     }
 }).WithOpenApi();
 app.MapHealthChecks("/healthz");
+
+// Compliance endpoints (GDPR/CCPA-like)
+app.MapPost("/api/privacy/erase", async (string userId, AppDbContext db) =>
+{
+    var prefs = db.UserPreferences.Where(x => x.UserId == userId);
+    db.UserPreferences.RemoveRange(prefs);
+    await db.SaveChangesAsync();
+    return Results.Ok(new { status = "erased", userId });
+}).WithOpenApi();
+
+app.MapGet("/api/privacy/export", async (string userId, AppDbContext db) =>
+{
+    var pref = await db.UserPreferences.OrderByDescending(x => x.Id).FirstOrDefaultAsync(x => x.UserId == userId);
+    return Results.Ok(new { userId, preferencesEncrypted = pref?.PreferencesJsonEncrypted });
+}).WithOpenApi();
 app.Run();
