@@ -11,6 +11,9 @@ namespace IntimacyAI.Server.Data
 
         public DbSet<UsageAnalytics> UsageAnalytics { get; set; } = null!;
         public DbSet<ModelPerformance> ModelPerformances { get; set; } = null!;
+        public DbSet<UserPreferences> UserPreferences { get; set; } = null!;
+        public DbSet<AnalysisHistory> AnalysisHistories { get; set; } = null!;
+        public DbSet<CoachingSession> CoachingSessions { get; set; } = null!;
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
@@ -35,6 +38,38 @@ namespace IntimacyAI.Server.Data
                 entity.Property(e => e.ModelVersion).HasColumnName("model_version");
                 entity.Property(e => e.AccuracyMetricsJson).HasColumnName("accuracy_metrics");
                 entity.Property(e => e.PerformanceMetricsJson).HasColumnName("performance_metrics");
+                entity.Property(e => e.CreatedAtUtc).HasColumnName("created_at");
+            });
+
+            modelBuilder.Entity<UserPreferences>(entity =>
+            {
+                entity.ToTable("user_preferences");
+                entity.HasKey(e => e.Id);
+                entity.Property(e => e.UserId).HasColumnName("user_id");
+                entity.Property(e => e.PreferencesJsonEncrypted).HasColumnName("preferences_json");
+                entity.Property(e => e.CreatedAtUtc).HasColumnName("created_at");
+                entity.Property(e => e.UpdatedAtUtc).HasColumnName("updated_at");
+                entity.HasIndex(e => e.UserId).IsUnique(false);
+            });
+
+            modelBuilder.Entity<AnalysisHistory>(entity =>
+            {
+                entity.ToTable("analysis_history");
+                entity.HasKey(e => e.Id);
+                entity.Property(e => e.SessionId).HasColumnName("session_id");
+                entity.Property(e => e.AnalysisType).HasColumnName("analysis_type");
+                entity.Property(e => e.ScoresJsonEncrypted).HasColumnName("scores_json");
+                entity.Property(e => e.MetadataJsonEncrypted).HasColumnName("metadata_json");
+                entity.Property(e => e.CreatedAtUtc).HasColumnName("created_at");
+            });
+
+            modelBuilder.Entity<CoachingSession>(entity =>
+            {
+                entity.ToTable("coaching_sessions");
+                entity.HasKey(e => e.Id);
+                entity.Property(e => e.SessionId).HasColumnName("session_id");
+                entity.Property(e => e.SuggestionsJsonEncrypted).HasColumnName("suggestions_json");
+                entity.Property(e => e.FeedbackJsonEncrypted).HasColumnName("feedback_json");
                 entity.Property(e => e.CreatedAtUtc).HasColumnName("created_at");
             });
         }

@@ -1,7 +1,12 @@
 using IntimacyAI.Server.Data;
 using IntimacyAI.Server.Models;
 using IntimacyAI.Server.Security;
+using IntimacyAI.Server.Services;
+using IntimacyAI.Server.Hubs;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.AspNetCore.RateLimiting;
+using System.Threading.RateLimiting;
+using Microsoft.Extensions.Diagnostics.HealthChecks;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -17,6 +22,19 @@ builder.Services.AddCors(options =>
     options.AddPolicy("DevAllowAll", policy =>
         policy.AllowAnyOrigin().AllowAnyHeader().AllowAnyMethod());
 });
+builder.Services.AddSignalR();
+builder.Services.AddRateLimiter(_ => _.AddFixedWindowLimiter("fixed", options =>
+{
+    options.Window = TimeSpan.FromSeconds(1);
+    options.PermitLimit = 20;
+    options.QueueLimit = 0;
+}));
+builder.Services.AddSingleton<IAnalysisQueue, AnalysisQueue>();
+builder.Services.AddHostedService<AnalysisWorker>();
+builder.Services.AddSingleton<IEncryptionService, EncryptionService>();
+builder.Services.AddHealthChecks()
+    .AddCheck("self", () => HealthCheckResult.Healthy())
+    .AddDbContextCheck<AppDbContext>(name: "db");
 
 var app = builder.Build();
 
@@ -35,6 +53,7 @@ using (var scope = app.Services.CreateScope())
 }
 
 app.UseCors("DevAllowAll");
+app.UseRateLimiter();
 app.UseMiddleware<ApiKeyMiddleware>();
 
 app.MapGet("/api/analytics", async (AppDbContext db) =>
@@ -63,6 +82,68 @@ app.MapPost("/api/model-performance", async (ModelPerformance payload, AppDbCont
     return Results.Created($"/api/model-performance/{payload.Id}", payload);
 }).WithOpenApi();
 
+app.MapHub<AnalysisHub>("/hubs/analysis").RequireRateLimiting("fixed");
+
+app.MapPost("/api/analyze", async (HttpRequest request, IAnalysisQueue queue) =>
+{
+    if (!request.HasFormContentType)
+        return Results.BadRequest("multipart/form-data required");
+    var form = await request.ReadFormAsync();
+    var file = form.Files.GetFile("file");
+    if (file is null || file.Length == 0) return Results.BadRequest("file is required");
+    using var ms = new MemoryStream();
+    await file.CopyToAsync(ms);
+    var req = new AnalysisRequest
+    {
+        AnalysisType = "image",
+        Data = ms.ToArray(),
+        Metadata = new Dictionary<string, string> { { "filename", file.FileName } }
+    };
+    queue.Enqueue(req);
+    return Results.Accepted($"/api/analysis/{req.SessionId}", new { sessionId = req.SessionId });
+}).DisableAntiforgery().RequireRateLimiting("fixed").WithOpenApi();
+
+app.MapGet("/api/analysis/{sessionId}", async (string sessionId, AppDbContext db) =>
+{
+    var item = await db.AnalysisHistories.OrderByDescending(x => x.Id).FirstOrDefaultAsync(x => x.SessionId == sessionId);
+    return item is null ? Results.NotFound() : Results.Ok(item);
+}).RequireRateLimiting("fixed").WithOpenApi();
+
+app.MapGet("/api/preferences/{userId}", async (string userId, AppDbContext db) =>
+{
+    var pref = await db.UserPreferences.OrderByDescending(x => x.Id).FirstOrDefaultAsync(x => x.UserId == userId);
+    return pref is null ? Results.NotFound() : Results.Ok(pref);
+}).WithOpenApi();
+
+app.MapPost("/api/preferences/{userId}", async (string userId, Dictionary<string, object> payload, AppDbContext db, IEncryptionService enc) =>
+{
+    var json = System.Text.Json.JsonSerializer.Serialize(payload);
+    var encrypted = enc.Encrypt(json);
+    var now = DateTime.UtcNow;
+    var entity = await db.UserPreferences.FirstOrDefaultAsync(x => x.UserId == userId);
+    if (entity is null)
+    {
+        entity = new UserPreferences { UserId = userId, PreferencesJsonEncrypted = encrypted, CreatedAtUtc = now, UpdatedAtUtc = now };
+        db.UserPreferences.Add(entity);
+    }
+    else
+    {
+        entity.PreferencesJsonEncrypted = encrypted;
+        entity.UpdatedAtUtc = now;
+    }
+    await db.SaveChangesAsync();
+    return Results.Ok(entity);
+}).WithOpenApi();
+
+app.MapPost("/api/coaching/{sessionId}", async (string sessionId, Dictionary<string, object> payload, AppDbContext db, IEncryptionService enc) =>
+{
+    var encrypted = enc.Encrypt(System.Text.Json.JsonSerializer.Serialize(payload));
+    var entity = new CoachingSession { SessionId = sessionId, SuggestionsJsonEncrypted = encrypted, CreatedAtUtc = DateTime.UtcNow };
+    db.CoachingSessions.Add(entity);
+    await db.SaveChangesAsync();
+    return Results.Created($"/api/coaching/{entity.Id}", entity);
+}).WithOpenApi();
+
 app.MapGet("/health", async (AppDbContext db) =>
 {
     try
@@ -75,4 +156,5 @@ app.MapGet("/health", async (AppDbContext db) =>
         return Results.Problem($"Health check failed: {ex.Message}");
     }
 }).WithOpenApi();
+app.MapHealthChecks("/healthz");
 app.Run();

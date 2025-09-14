@@ -13,7 +13,7 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyCompanyAttribute("IntimacyAI.Client")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Release")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+7ee7b1b4002048b86eaf95021fab41223fbf1c8c")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+14a89be27f688257cd07958f317e80f6e27ca4c6")]
 [assembly: System.Reflection.AssemblyProductAttribute("IntimacyAI.Client")]
 [assembly: System.Reflection.AssemblyTitleAttribute("IntimacyAI.Client")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]
