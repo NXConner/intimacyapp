@@ -33,6 +33,10 @@ Open http://localhost:5175
 - Go to Settings to set API Base URL (default http://localhost:5087) and API Key.
 - Home page loads health, recent analytics, and allows posting a sample analytics record.
 
+### Helper Scripts
+- Unix: `./run.sh server|client|build|test`
+- Windows: `run.cmd server|client|build|test`
+
 ## Development
 - Solution file: `intimacy-ai/IntimacyAI.sln`
 - Projects:
@@ -50,9 +54,6 @@ Open http://localhost:5175
 
 ## CI
 A simple GitHub Actions workflow builds the solution on pushes/PRs.
-
-## License
-MIT (replace as needed).
 
 ## Windows WPF App
 Requires Windows with .NET 8 SDK and Windows 10 SDK.
@@ -72,3 +73,11 @@ Requires Android Studio / Gradle.
 From `platform/android` in Android environment:
 - Open the folder in Android Studio and let it generate Gradle wrapper and sync.
 - Use an emulator. The app posts to `http://10.0.2.2:5087` with `X-API-Key: dev-key`.
+
+### Emulator/Device Setup
+- Android Emulator: ensure host API is reachable at `10.0.2.2:5087` and CORS allows emulator origin.
+- Physical Android device: connect to host IP on LAN, update Base URL in the app UI accordingly.
+- Windows: if API runs on WSL2, ensure port forwarding to Windows host.
+
+## Release Checklist
+See `RELEASE_CHECKLIST.md`.
