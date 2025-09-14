@@ -11,6 +11,11 @@
     <label>API Key</label>
     <input class="form-control" @bind="apiKey" />
 </div>
+<div class="mb-3">
+    <label>User ID</label>
+    <input class="form-control" @bind="userId" />
+    <small>Used to save/load preferences</small>
+ </div>
 <button class="btn btn-primary" @onclick="Save">Save</button>
 <p>@message</p>
 
@@ -18,17 +23,20 @@
     string? apiBaseUrl;
     string? apiKey;
     string message = string.Empty;
+    string? userId;
 
     protected override async Task OnInitializedAsync()
     {
         apiBaseUrl = await AppSettingsService.GetApiBaseUrlAsync();
         apiKey = await AppSettingsService.GetApiKeyAsync();
+        userId = await AppSettingsService.GetValue("UserId");
     }
 
     private async Task Save()
     {
         await AppSettingsService.SetApiBaseUrlAsync(apiBaseUrl);
         await AppSettingsService.SetApiKeyAsync(apiKey);
+        await AppSettingsService.SetValue("UserId", userId);
         message = "Saved. Reload to apply to existing HttpClient instances.";
     }
 }

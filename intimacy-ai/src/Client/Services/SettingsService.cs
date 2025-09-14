@@ -15,5 +15,8 @@ namespace IntimacyAI.Client.Services
         public async Task SetApiBaseUrlAsync(string? value) => await _js.InvokeVoidAsync("settingsStore.set", "ApiBaseUrl", value ?? "");
         public async Task<string?> GetApiKeyAsync() => await _js.InvokeAsync<string?>("settingsStore.get", "ApiKey");
         public async Task SetApiKeyAsync(string? value) => await _js.InvokeVoidAsync("settingsStore.set", "ApiKey", value ?? "");
+
+        public async Task<string?> GetValue(string key) => await _js.InvokeAsync<string?>("settingsStore.get", key);
+        public async Task SetValue(string key, string? value) => await _js.InvokeVoidAsync("settingsStore.set", key, value ?? "");
     }
 }

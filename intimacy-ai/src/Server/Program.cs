@@ -7,13 +7,32 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.AspNetCore.RateLimiting;
 using System.Threading.RateLimiting;
 using Microsoft.Extensions.Diagnostics.HealthChecks;
+using Microsoft.OpenApi.Models;
+using IntimacyAI.Server.DTOs;
 
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
 builder.Services.AddEndpointsApiExplorer();
-builder.Services.AddSwaggerGen();
+builder.Services.AddSwaggerGen(c =>
+{
+    c.SwaggerDoc("v1", new OpenApiInfo { Title = "IntimacyAI API", Version = "v1" });
+    c.AddSecurityDefinition("ApiKey", new OpenApiSecurityScheme
+    {
+        Description = "API Key needed to access the endpoints. Use 'X-API-Key' header.",
+        In = ParameterLocation.Header,
+        Name = "X-API-Key",
+        Type = SecuritySchemeType.ApiKey
+    });
+    c.AddSecurityRequirement(new OpenApiSecurityRequirement
+    {
+        {
+            new OpenApiSecurityScheme { Reference = new OpenApiReference { Type = ReferenceType.SecurityScheme, Id = "ApiKey" } },
+            Array.Empty<string>()
+        }
+    });
+});
 builder.Services.AddDbContext<AppDbContext>(options =>
     options.UseSqlite(builder.Configuration.GetConnectionString("DefaultSqlite"))
 );
@@ -109,10 +128,17 @@ app.MapGet("/api/analysis/{sessionId}", async (string sessionId, AppDbContext db
     return item is null ? Results.NotFound() : Results.Ok(item);
 }).RequireRateLimiting("fixed").WithOpenApi();
 
-app.MapGet("/api/preferences/{userId}", async (string userId, AppDbContext db) =>
+app.MapGet("/api/preferences/{userId}", async (string userId, AppDbContext db, IEncryptionService enc) =>
 {
     var pref = await db.UserPreferences.OrderByDescending(x => x.Id).FirstOrDefaultAsync(x => x.UserId == userId);
-    return pref is null ? Results.NotFound() : Results.Ok(pref);
+    if (pref is null) return Results.NotFound();
+    Dictionary<string, object>? prefs = null;
+    if (!string.IsNullOrWhiteSpace(pref.PreferencesJsonEncrypted))
+    {
+        var json = enc.Decrypt(pref.PreferencesJsonEncrypted!);
+        prefs = System.Text.Json.JsonSerializer.Deserialize<Dictionary<string, object>>(json);
+    }
+    return Results.Ok(new PreferencesDto { UserId = userId, Preferences = prefs });
 }).WithOpenApi();
 
 app.MapPost("/api/preferences/{userId}", async (string userId, Dictionary<string, object> payload, AppDbContext db, IEncryptionService enc) =>
