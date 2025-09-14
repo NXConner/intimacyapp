@@ -1,0 +1,34 @@
+@page "/settings"
+@inject IntimacyAI.Client.Services.SettingsService AppSettingsService
+
+<h3>Settings</h3>
+
+<div class="mb-3">
+    <label>API Base URL</label>
+    <input class="form-control" @bind="apiBaseUrl" />
+</div>
+<div class="mb-3">
+    <label>API Key</label>
+    <input class="form-control" @bind="apiKey" />
+</div>
+<button class="btn btn-primary" @onclick="Save">Save</button>
+<p>@message</p>
+
+@code {
+    string? apiBaseUrl;
+    string? apiKey;
+    string message = string.Empty;
+
+    protected override async Task OnInitializedAsync()
+    {
+        apiBaseUrl = await AppSettingsService.GetApiBaseUrlAsync();
+        apiKey = await AppSettingsService.GetApiKeyAsync();
+    }
+
+    private async Task Save()
+    {
+        await AppSettingsService.SetApiBaseUrlAsync(apiBaseUrl);
+        await AppSettingsService.SetApiKeyAsync(apiKey);
+        message = "Saved. Reload to apply to existing HttpClient instances.";
+    }
+}

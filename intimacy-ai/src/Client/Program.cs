@@ -2,16 +2,25 @@ using Microsoft.AspNetCore.Components.Web;
 using Microsoft.AspNetCore.Components.WebAssembly.Hosting;
 using IntimacyAI.Client;
 using System.Net.Http.Json;
+using IntimacyAI.Client.Services;
 
 var builder = WebAssemblyHostBuilder.CreateDefault(args);
 builder.RootComponents.Add<App>("#app");
 builder.RootComponents.Add<HeadOutlet>("head::after");
 
-var http = new HttpClient { BaseAddress = new Uri(builder.HostEnvironment.BaseAddress) };
-var settings = await http.GetFromJsonAsync<AppSettings>("appsettings.json");
-var apiBase = settings?.ApiBaseUrl ?? builder.HostEnvironment.BaseAddress;
+builder.Services.AddScoped<SettingsService>();
 
-builder.Services.AddScoped(sp => new HttpClient { BaseAddress = new Uri(apiBase) });
+var tempHttp = new HttpClient { BaseAddress = new Uri(builder.HostEnvironment.BaseAddress) };
+var settingsFile = await tempHttp.GetFromJsonAsync<AppSettings>("appsettings.json");
+var fallbackApiBase = settingsFile?.ApiBaseUrl ?? builder.HostEnvironment.BaseAddress;
+
+builder.Services.AddScoped(async sp =>
+{
+    var svc = sp.GetRequiredService<SettingsService>();
+    var stored = await svc.GetApiBaseUrlAsync();
+    var baseUrl = string.IsNullOrWhiteSpace(stored) ? fallbackApiBase : stored;
+    return new HttpClient { BaseAddress = new Uri(baseUrl) };
+});
 
 await builder.Build().RunAsync();
 

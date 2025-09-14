@@ -26,6 +26,13 @@
         <a href="" class="reload">Reload</a>
         <a class="dismiss">🗙</a>
     </div>
+    <script>
+      window.settingsStore = {
+        get: function (k) { return localStorage.getItem(k); },
+        set: function (k, v) { localStorage.setItem(k, v); },
+        remove: function (k) { localStorage.removeItem(k); }
+      };
+    </script>
     <script src="_framework/blazor.webassembly.js"></script>
 </body>
 

@@ -1,5 +1,6 @@
 using IntimacyAI.Server.Data;
 using IntimacyAI.Server.Models;
+using IntimacyAI.Server.Security;
 using Microsoft.EntityFrameworkCore;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -34,6 +35,7 @@ using (var scope = app.Services.CreateScope())
 }
 
 app.UseCors("DevAllowAll");
+app.UseMiddleware<ApiKeyMiddleware>();
 
 app.MapGet("/api/analytics", async (AppDbContext db) =>
 {
