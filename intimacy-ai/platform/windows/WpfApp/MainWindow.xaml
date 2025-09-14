@@ -2,6 +2,8 @@
   <Grid>
     <StackPanel Margin="20">
       <TextBlock Text="Windows Stubs" FontSize="22"/>
+      <TextBlock x:Name="StatusText" Text="Status: (disconnected)" Margin="0,10,0,0"/>
+      <Button Content="Connect SignalR" Margin="0,10,0,0" Click="OnConnect"/>
       <Button Content="Windows Hello" Margin="0,10,0,0" Click="OnHello"/>
       <Button Content="Show Tray Icon" Margin="0,10,0,0" Click="OnTray"/>
       <Button Content="Send Notification" Margin="0,10,0,0" Click="OnNotify"/>

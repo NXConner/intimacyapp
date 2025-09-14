@@ -7,6 +7,8 @@ import androidx.compose.runtime.*
 import androidx.work.*
 import okhttp3.*
 import java.io.IOException
+import androidx.security.crypto.EncryptedSharedPreferences
+import androidx.security.crypto.MasterKey
 
 class MainActivity: ComponentActivity(){
     private val client = OkHttpClient()
@@ -16,13 +18,20 @@ class MainActivity: ComponentActivity(){
         setContent {
             MaterialTheme {
                 var status by remember { mutableStateOf("") }
-                Button(onClick={ postAnalytics { status = it } }){ Text("Post Analytics (stub)") }
-                Text(status)
+                var apiBase by remember { mutableStateOf(load("ApiBaseUrl") ?: "http://10.0.2.2:5087") }
+                var apiKey by remember { mutableStateOf(load("ApiKey") ?: "dev-key") }
+                Column {
+                    OutlinedTextField(apiBase, { apiBase = it }, label={ Text("API Base URL") })
+                    OutlinedTextField(apiKey, { apiKey = it }, label={ Text("API Key") })
+                    Row { Button(onClick={ save("ApiBaseUrl", apiBase); save("ApiKey", apiKey); status = "Saved" }){ Text("Save") } }
+                    Button(onClick={ postAnalytics(apiBase, apiKey) { status = it } }){ Text("Post Analytics (stub)") }
+                    Text(status)
+                }
             }
         }
     }
 
-    private fun postAnalytics(callback: (String)->Unit){
+    private fun postAnalytics(base: String, key: String, callback: (String)->Unit){
         val body = "{" +
                 "\"anonymousUserId\":\"android\"," +
                 "\"featureUsed\":\"stub\"," +
@@ -30,9 +39,9 @@ class MainActivity: ComponentActivity(){
                 "\"platform\":\"android\"," +
                 "\"appVersion\":\"0.0.1\"}"
         val req = Request.Builder()
-            .url("http://10.0.2.2:5087/api/analytics")
+            .url("$base/api/analytics")
             .addHeader("Content-Type","application/json")
-            .addHeader("X-API-Key","dev-key")
+            .addHeader("X-API-Key", key)
             .post(RequestBody.create(MediaType.parse("application/json"), body))
             .build()
         client.newCall(req).enqueue(object: Callback{
@@ -40,4 +49,11 @@ class MainActivity: ComponentActivity(){
             override fun onResponse(call: Call, response: Response) { callback("Status: ${response.code()}") }
         })
     }
+
+    private fun prefs() = run {
+        val key = MasterKey.Builder(this, MasterKey.DEFAULT_MASTER_KEY_ALIAS).setKeyScheme(MasterKey.KeyScheme.AES256_GCM).build()
+        EncryptedSharedPreferences.create(this, "prefs", key, EncryptedSharedPreferences.PrefKeyEncryptionScheme.AES256_SIV, EncryptedSharedPreferences.PrefValueEncryptionScheme.AES256_GCM)
+    }
+    private fun save(k:String, v:String){ prefs().edit().putString(k, v).apply() }
+    private fun load(k:String): String? = prefs().getString(k, null)
 }
