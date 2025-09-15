@@ -1,6 +1,7 @@
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.Hosting;
 
 namespace IntimacyAI.Server.Security
 {
@@ -8,11 +9,13 @@ namespace IntimacyAI.Server.Security
     {
         private readonly RequestDelegate _next;
         private readonly string _expectedKey;
+        private readonly IHostEnvironment _env;
 
-        public ApiKeyMiddleware(RequestDelegate next, IConfiguration configuration)
+        public ApiKeyMiddleware(RequestDelegate next, IConfiguration configuration, IHostEnvironment env)
         {
             _next = next;
             _expectedKey = configuration["Security:ApiKey"] ?? string.Empty;
+            _env = env;
         }
 
         public async Task InvokeAsync(HttpContext context)
@@ -26,7 +29,13 @@ namespace IntimacyAI.Server.Security
 
             if (string.IsNullOrEmpty(_expectedKey))
             {
-                await _next(context);
+                if (_env.IsDevelopment())
+                {
+                    await _next(context);
+                    return;
+                }
+                context.Response.StatusCode = StatusCodes.Status503ServiceUnavailable;
+                await context.Response.WriteAsync("API key not configured");
                 return;
             }
 

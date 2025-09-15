@@ -20,7 +20,12 @@ dotnet run -c Release --urls http://0.0.0.0:5087
 - Swagger: http://localhost:5087/swagger
 - Health: http://localhost:5087/health
 
-API security: send header `X-API-Key: dev-key` (change in `appsettings.json` -> `Security:ApiKey`).
+API security:
+- In Development, a default key is set in `src/Server/appsettings.Development.json` (`Security:ApiKey`).
+- In Production, set environment variables and do not store secrets in files:
+  - `Security__ApiKey` = your-strong-key
+  - `Security__EncryptionKey` = Base64-encoded 32-byte key for AES-GCM
+  - Optional CORS override: `CORS_ALLOWED_ORIGINS` = `https://app.example.com,https://admin.example.com`
 
 ### 2) Frontend Client (Blazor WASM)
 ```
@@ -46,11 +51,18 @@ Open http://localhost:5175
   - `platform/android` - Android Kotlin/Compose stub app (standalone Gradle)
 
 ### Database
-- SQLite file: `src/Server/app.db`
-- EF Core migrations applied on startup.
+- SQLite file is created at runtime (`src/Server/app.db`) and is ignored by git.
+- EF Core migrations are applied automatically on startup.
 
 ### Environment variables
-- None required. Configuration via `appsettings.json` and client local storage.
+- Development: provided in `appsettings.Development.json`.
+- Production: provide via env vars. Example (bash):
+```
+export Security__ApiKey="<your-key>"
+export Security__EncryptionKey="<base64-32-bytes>"
+export CORS_ALLOWED_ORIGINS="https://app.example.com"
+```
+Note: if `Security:ApiKey` is not configured in Production, the API returns `503 API key not configured`.
 
 ## CI
 A simple GitHub Actions workflow builds the solution on pushes/PRs.
