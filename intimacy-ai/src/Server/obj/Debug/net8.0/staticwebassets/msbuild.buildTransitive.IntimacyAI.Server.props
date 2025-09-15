@@ -1,3 +1,0 @@
-﻿<Project>
-  <Import Project="../buildMultiTargeting/IntimacyAI.Server.props" />
-</Project>
