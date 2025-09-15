@@ -59,7 +59,19 @@ builder.Services.AddRateLimiter(_ => _.AddFixedWindowLimiter("fixed", options =>
 builder.Services.AddSingleton<IAnalysisQueue, AnalysisQueue>();
 builder.Services.AddHostedService<AnalysisWorker>();
 builder.Services.AddSingleton<IEncryptionService, EncryptionService>();
-builder.Services.AddSingleton<IModelInferenceService, PlaceholderModelInferenceService>();
+
+// Inference provider selection
+var inferenceProvider = builder.Configuration.GetValue<string>("Inference:Provider")?.ToLowerInvariant() ?? "placeholder";
+if (inferenceProvider == "http")
+{
+    builder.Services.Configure<HttpInferenceOptions>(builder.Configuration.GetSection("Inference:Http"));
+    builder.Services.AddHttpClient<HttpModelInferenceService>();
+    builder.Services.AddSingleton<IModelInferenceService, HttpModelInferenceService>();
+}
+else
+{
+    builder.Services.AddSingleton<IModelInferenceService, PlaceholderModelInferenceService>();
+}
 builder.Services.AddHealthChecks()
     .AddCheck("self", () => HealthCheckResult.Healthy())
     .AddDbContextCheck<AppDbContext>(name: "db");
