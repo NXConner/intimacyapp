@@ -1,6 +1,6 @@
 {
   "version": 2,
-  "dgSpecHash": "NyqlbctZkrM=",
+  "dgSpecHash": "rt92Jw7jDJY=",
   "success": true,
   "projectFilePath": "/workspace/intimacy-ai/src/Server/IntimacyAI.Server.csproj",
   "expectedPackageFiles": [
@@ -39,6 +39,7 @@
     "/home/ubuntu/.nuget/packages/microsoft.extensions.primitives/8.0.0/microsoft.extensions.primitives.8.0.0.nupkg.sha512",
     "/home/ubuntu/.nuget/packages/microsoft.openapi/1.6.14/microsoft.openapi.1.6.14.nupkg.sha512",
     "/home/ubuntu/.nuget/packages/mono.texttemplating/2.2.1/mono.texttemplating.2.2.1.nupkg.sha512",
+    "/home/ubuntu/.nuget/packages/sixlabors.imagesharp/3.1.11/sixlabors.imagesharp.3.1.11.nupkg.sha512",
     "/home/ubuntu/.nuget/packages/sqlitepclraw.bundle_e_sqlite3/2.1.6/sqlitepclraw.bundle_e_sqlite3.2.1.6.nupkg.sha512",
     "/home/ubuntu/.nuget/packages/sqlitepclraw.core/2.1.6/sqlitepclraw.core.2.1.6.nupkg.sha512",
     "/home/ubuntu/.nuget/packages/sqlitepclraw.lib.e_sqlite3/2.1.6/sqlitepclraw.lib.e_sqlite3.2.1.6.nupkg.sha512",

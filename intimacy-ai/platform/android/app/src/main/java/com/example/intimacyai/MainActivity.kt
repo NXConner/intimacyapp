@@ -24,7 +24,7 @@ class MainActivity: ComponentActivity(){
                     OutlinedTextField(apiBase, { apiBase = it }, label={ Text("API Base URL") })
                     OutlinedTextField(apiKey, { apiKey = it }, label={ Text("API Key") })
                     Row { Button(onClick={ save("ApiBaseUrl", apiBase); save("ApiKey", apiKey); status = "Saved" }){ Text("Save") } }
-                    Button(onClick={ postAnalytics(apiBase, apiKey) { status = it } }){ Text("Post Analytics (stub)") }
+                    Button(onClick={ postAnalytics(apiBase, apiKey) { status = it } }){ Text("Post Analytics") }
                     Text(status)
                 }
             }
@@ -34,7 +34,7 @@ class MainActivity: ComponentActivity(){
     private fun postAnalytics(base: String, key: String, callback: (String)->Unit){
         val body = "{" +
                 "\"anonymousUserId\":\"android\"," +
-                "\"featureUsed\":\"stub\"," +
+                "\"featureUsed\":\"open-app\"," +
                 "\"usageDurationSeconds\":1," +
                 "\"platform\":\"android\"," +
                 "\"appVersion\":\"0.0.1\"}"
