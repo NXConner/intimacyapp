@@ -20,12 +20,22 @@ dotnet run -c Release --urls http://0.0.0.0:5087
 - Swagger: http://localhost:5087/swagger
 - Health: http://localhost:5087/health
 
+Inference configuration:
+- ONNX runtime:
+  - set `Onnx:Enabled=true` and `Onnx:ModelPath` in `src/Server/appsettings.json`
+  - or via env vars: `Onnx__Enabled=true`, `Onnx__ModelPath=/absolute/path/model.onnx`
+- HTTP backend:
+  - set `HttpInference:BaseUrl` and optionally `HttpInference:ApiKey`
+  - env vars: `HttpInference__BaseUrl`, `HttpInference__ApiKey`, `HttpInference__ApiKeyHeader`
+The server selects: ONNX if enabled, else HTTP if BaseUrl is set, else placeholder heuristic.
+
 API security:
 - In Development, a default key is set in `src/Server/appsettings.Development.json` (`Security:ApiKey`).
 - In Production, set environment variables and do not store secrets in files:
   - `Security__ApiKey` = your-strong-key
   - `Security__EncryptionKey` = Base64-encoded 32-byte key for AES-GCM
   - Optional CORS override: `CORS_ALLOWED_ORIGINS` = `https://app.example.com,https://admin.example.com`
+  - Set `ASPNETCORE_URLS` (e.g., `http://0.0.0.0:5087`) and restrict CORS and firewall rules appropriately.
 
 ### 2) Frontend Client (Blazor WASM)
 ```
