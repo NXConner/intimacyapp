@@ -1,1 +1,11 @@
-{"Version":1,"Hash":"14ooeP/rwS/054Pc5m7Z6+wBdPZTEotDpAAQTu+pgwA=","Source":"IntimacyAI.Server","BasePath":"_content/IntimacyAI.Server","Mode":"Default","ManifestType":"Build","ReferencedProjectsConfiguration":[],"DiscoveryPatterns":[],"Assets":[],"Endpoints":[]}
+{
+  "Version": 1,
+  "Hash": "CYHC+y/2UEtcrD+F/FIsMRskz+j4D4pH4URQUU91igY=",
+  "Source": "IntimacyAI.Server",
+  "BasePath": "_content/IntimacyAI.Server",
+  "Mode": "Default",
+  "ManifestType": "Build",
+  "ReferencedProjectsConfiguration": [],
+  "DiscoveryPatterns": [],
+  "Assets": []
+}

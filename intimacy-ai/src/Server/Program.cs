@@ -45,9 +45,18 @@ if (!string.IsNullOrWhiteSpace(corsEnv))
 builder.Services.AddCors(options =>
 {
     options.AddPolicy("DefaultCors", policy =>
-        policy.WithOrigins(allowedOrigins)
-              .AllowAnyHeader()
-              .AllowAnyMethod());
+    {
+        if (allowedOrigins.Contains("*"))
+        {
+            policy.AllowAnyOrigin().AllowAnyHeader().AllowAnyMethod();
+        }
+        else
+        {
+            policy.WithOrigins(allowedOrigins)
+                  .AllowAnyHeader()
+                  .AllowAnyMethod();
+        }
+    });
 });
 builder.Services.AddSignalR();
 builder.Services.AddRateLimiter(_ => _.AddFixedWindowLimiter("fixed", options =>
@@ -59,6 +68,20 @@ builder.Services.AddRateLimiter(_ => _.AddFixedWindowLimiter("fixed", options =>
 builder.Services.AddSingleton<IAnalysisQueue, AnalysisQueue>();
 builder.Services.AddHostedService<AnalysisWorker>();
 builder.Services.AddSingleton<IEncryptionService, EncryptionService>();
+
+// Inference configuration and selection
+builder.Services.Configure<OnnxOptions>(builder.Configuration.GetSection("Onnx"));
+builder.Services.Configure<HttpInferenceOptions>(builder.Configuration.GetSection("HttpInference"));
+var onnxEnabled = builder.Configuration.GetValue<bool?>("Onnx:Enabled") ?? false;
+var httpBaseUrl = builder.Configuration["HttpInference:BaseUrl"];
+if (onnxEnabled)
+{
+    builder.Services.AddSingleton<IModelInferenceService, OnnxModelInferenceService>();
+}
+else if (!string.IsNullOrWhiteSpace(httpBaseUrl))
+{
+    builder.Services.AddHttpClient<HttpModelInferenceService>();
+    builder.Services.AddTransient<IModelInferenceService>(sp => sp.GetRequiredService<HttpModelInferenceService>());
 }
 else
 {
