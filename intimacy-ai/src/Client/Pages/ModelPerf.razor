@@ -1,0 +1,44 @@
+@page "/model-performance"
+@using System.Net.Http.Json
+@inject IntimacyAI.Client.Services.SettingsService AppSettingsService
+
+<h3>Model Performance</h3>
+
+@if (items is null)
+{
+    <p>Loading...</p>
+}
+else
+{
+    <ul>
+        @foreach (var a in items)
+        {
+            <li>#@a.id v@a.modelVersion acc: @a.accuracyMetricsJson perf: @a.performanceMetricsJson</li>
+        }
+    </ul>
+}
+
+@code {
+    List<ModelPerfDto>? items;
+    [Inject] HttpClient Http { get; set; } = default!;
+    string? apiKey;
+
+    protected override async Task OnInitializedAsync()
+    {
+        apiKey = await AppSettingsService.GetApiKeyAsync();
+        using var req = new HttpRequestMessage(HttpMethod.Get, "/api/model-performance");
+        if (!string.IsNullOrWhiteSpace(apiKey)) req.Headers.Add("X-API-Key", apiKey);
+        using var res = await Http.SendAsync(req);
+        res.EnsureSuccessStatusCode();
+        items = await res.Content.ReadFromJsonAsync<List<ModelPerfDto>>();
+    }
+
+    public sealed class ModelPerfDto
+    {
+        public int id { get; set; }
+        public string? modelVersion { get; set; }
+        public string? accuracyMetricsJson { get; set; }
+        public string? performanceMetricsJson { get; set; }
+        public DateTime createdAtUtc { get; set; }
+    }
+}
