@@ -41,10 +41,6 @@
       "PackagePath": "staticwebassets/index.html"
     },
     {
-      "Id": "/workspace/intimacy-ai/src/Client/wwwroot/sample-data/weather.json",
-      "PackagePath": "staticwebassets/sample-data/weather.json"
-    },
-    {
       "Id": "obj/Release/net8.0/staticwebassets/msbuild.IntimacyAI.Client.Microsoft.AspNetCore.StaticWebAssets.props",
       "PackagePath": "build\\Microsoft.AspNetCore.StaticWebAssets.props"
     },

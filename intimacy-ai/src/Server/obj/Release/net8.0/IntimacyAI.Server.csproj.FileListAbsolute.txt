@@ -133,3 +133,4 @@
 /workspace/intimacy-ai/src/Server/bin/Release/net8.0/Microsoft.Extensions.Diagnostics.HealthChecks.EntityFrameworkCore.dll
 /workspace/intimacy-ai/src/Server/bin/Release/net8.0/Microsoft.Extensions.Logging.Abstractions.dll
 /workspace/intimacy-ai/src/Server/bin/Release/net8.0/Microsoft.Extensions.Options.dll
+/workspace/intimacy-ai/src/Server/bin/Release/net8.0/SixLabors.ImageSharp.dll
