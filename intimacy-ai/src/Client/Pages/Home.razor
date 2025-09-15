@@ -22,7 +22,7 @@
             }
         }
     </ul>
-    @if (IsDevelopment)
+    @if (IsDevUi)
     {
         <button class="btn" @onclick="PostSample">Post sample</button>
         <p>@postMessage</p>
@@ -44,7 +44,11 @@
 @code {
     string statusMessage = "Loading...";
     string postMessage = string.Empty;
-    bool IsDevelopment => Http.BaseAddress?.Host == "localhost" || Http.BaseAddress?.Host == "127.0.0.1";
+#if DEBUG
+    bool IsDevUi => true;
+#else
+    bool IsDevUi => false;
+#endif
 
     List<AnalyticsDto>? analytics;
     List<ModelPerfDto>? perf;
