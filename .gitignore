@@ -1,0 +1,15 @@
+# Build outputs
+**/bin/
+**/obj/
+
+# SQLite databases
+intimacy-ai/src/Server/app.db
+**/*.db
+
+# IDE/editor
+.vscode/
+.idea/
+
+# Node/bundle artifacts
+**/wwwroot/_framework/
+
