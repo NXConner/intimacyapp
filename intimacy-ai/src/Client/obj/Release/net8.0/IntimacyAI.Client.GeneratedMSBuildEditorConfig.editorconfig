@@ -21,6 +21,8 @@ build_property.SupportLocalizedComponentNames =
 build_property.GenerateRazorMetadataSourceChecksumAttributes = 
 build_property.MSBuildProjectDirectory = /workspace/intimacy-ai/src/Client
 build_property._RazorSourceGeneratorDebug = 
+build_property.EffectiveAnalysisLevelStyle = 8.0
+build_property.EnableCodeStyleSeverity = 
 
 [/workspace/intimacy-ai/src/Client/App.razor]
 build_metadata.AdditionalFiles.TargetPath = QXBwLnJhem9y

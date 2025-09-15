@@ -20,11 +20,6 @@
 /workspace/intimacy-ai/src/Server/obj/Release/net8.0/IntimacyAI.Server.sourcelink.json
 /workspace/intimacy-ai/src/Server/obj/Release/net8.0/staticwebassets.build.json
 /workspace/intimacy-ai/src/Server/obj/Release/net8.0/staticwebassets.development.json
-/workspace/intimacy-ai/src/Server/obj/Release/net8.0/staticwebassets/msbuild.IntimacyAI.Server.Microsoft.AspNetCore.StaticWebAssets.props
-/workspace/intimacy-ai/src/Server/obj/Release/net8.0/staticwebassets/msbuild.build.IntimacyAI.Server.props
-/workspace/intimacy-ai/src/Server/obj/Release/net8.0/staticwebassets/msbuild.buildMultiTargeting.IntimacyAI.Server.props
-/workspace/intimacy-ai/src/Server/obj/Release/net8.0/staticwebassets/msbuild.buildTransitive.IntimacyAI.Server.props
-/workspace/intimacy-ai/src/Server/obj/Release/net8.0/staticwebassets.pack.json
 /workspace/intimacy-ai/src/Server/obj/Release/net8.0/scopedcss/bundle/IntimacyAI.Server.styles.css
 /workspace/intimacy-ai/src/Server/obj/Release/net8.0/Intimacy.B72CAAA4.Up2Date
 /workspace/intimacy-ai/src/Server/obj/Release/net8.0/IntimacyAI.Server.dll
@@ -155,3 +150,10 @@
 /workspace/intimacy-ai/src/Server/bin/Release/net8.0/runtimes/win-x86/native/onnxruntime.lib
 /workspace/intimacy-ai/src/Server/bin/Release/net8.0/runtimes/win-x86/native/onnxruntime_providers_shared.dll
 /workspace/intimacy-ai/src/Server/bin/Release/net8.0/runtimes/win-x86/native/onnxruntime_providers_shared.lib
+/workspace/intimacy-ai/src/Server/obj/Release/net8.0/rpswa.dswa.cache.json
+/workspace/intimacy-ai/src/Server/bin/Release/net8.0/IntimacyAI.Server.staticwebassets.endpoints.json
+/workspace/intimacy-ai/src/Server/obj/Release/net8.0/rjimswa.dswa.cache.json
+/workspace/intimacy-ai/src/Server/obj/Release/net8.0/rjsmrazor.dswa.cache.json
+/workspace/intimacy-ai/src/Server/obj/Release/net8.0/rjsmcshtml.dswa.cache.json
+/workspace/intimacy-ai/src/Server/obj/Release/net8.0/staticwebassets.build.json.cache
+/workspace/intimacy-ai/src/Server/obj/Release/net8.0/staticwebassets.build.endpoints.json

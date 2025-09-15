@@ -59,10 +59,27 @@ builder.Services.AddRateLimiter(_ => _.AddFixedWindowLimiter("fixed", options =>
 builder.Services.AddSingleton<IAnalysisQueue, AnalysisQueue>();
 builder.Services.AddHostedService<AnalysisWorker>();
 builder.Services.AddSingleton<IEncryptionService, EncryptionService>();
+// Configure inference options and register the inference service implementation
+builder.Services.Configure<OnnxOptions>(builder.Configuration.GetSection("Onnx"));
+builder.Services.Configure<HttpInferenceOptions>(builder.Configuration.GetSection("HttpInference"));
+
+var onnxCfg = builder.Configuration.GetSection("Onnx").Get<OnnxOptions>() ?? new OnnxOptions();
+if (onnxCfg.Enabled)
+{
+    builder.Services.AddSingleton<IModelInferenceService, OnnxModelInferenceService>();
 }
 else
 {
-    builder.Services.AddSingleton<IModelInferenceService, PlaceholderModelInferenceService>();
+    var httpCfg = builder.Configuration.GetSection("HttpInference").Get<HttpInferenceOptions>() ?? new HttpInferenceOptions();
+    if (!string.IsNullOrWhiteSpace(httpCfg.BaseUrl))
+    {
+        builder.Services.AddHttpClient<HttpModelInferenceService>();
+        builder.Services.AddSingleton<IModelInferenceService>(sp => sp.GetRequiredService<HttpModelInferenceService>());
+    }
+    else
+    {
+        builder.Services.AddSingleton<IModelInferenceService, PlaceholderModelInferenceService>();
+    }
 }
 builder.Services.AddHealthChecks()
     .AddCheck("self", () => HealthCheckResult.Healthy())

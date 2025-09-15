@@ -1,6 +1,6 @@
 {
   "version": 2,
-  "dgSpecHash": "r2h7gccKqMs=",
+  "dgSpecHash": "kZ3sjSn2A5w=",
   "success": true,
   "projectFilePath": "/workspace/intimacy-ai/src/Client/IntimacyAI.Client.csproj",
   "expectedPackageFiles": [
@@ -37,7 +37,7 @@
     "/home/ubuntu/.nuget/packages/microsoft.jsinterop/8.0.20/microsoft.jsinterop.8.0.20.nupkg.sha512",
     "/home/ubuntu/.nuget/packages/microsoft.jsinterop.webassembly/8.0.20/microsoft.jsinterop.webassembly.8.0.20.nupkg.sha512",
     "/home/ubuntu/.nuget/packages/microsoft.net.illink.tasks/8.0.20/microsoft.net.illink.tasks.8.0.20.nupkg.sha512",
-    "/home/ubuntu/.nuget/packages/microsoft.net.sdk.webassembly.pack/8.0.20/microsoft.net.sdk.webassembly.pack.8.0.20.nupkg.sha512",
+    "/home/ubuntu/.nuget/packages/microsoft.net.sdk.webassembly.pack/9.0.9/microsoft.net.sdk.webassembly.pack.9.0.9.nupkg.sha512",
     "/home/ubuntu/.nuget/packages/system.io.pipelines/8.0.0/system.io.pipelines.8.0.0.nupkg.sha512",
     "/home/ubuntu/.nuget/packages/system.threading.channels/8.0.0/system.threading.channels.8.0.0.nupkg.sha512",
     "/home/ubuntu/.nuget/packages/microsoft.netcore.app.runtime.mono.browser-wasm/8.0.20/microsoft.netcore.app.runtime.mono.browser-wasm.8.0.20.nupkg.sha512"
