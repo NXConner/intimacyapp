@@ -1,0 +1,66 @@
+@page "/preferences"
+@inject IntimacyAI.Client.Services.SettingsService AppSettingsService
+
+<h3>Preferences</h3>
+
+<div class="mb-3">
+    <label>User ID</label>
+    <input class="form-control" @bind="userId" />
+</div>
+<div class="mb-3">
+    <label>Preferences (JSON)</label>
+    <textarea class="form-control" rows="8" @bind="preferencesJson"></textarea>
+</div>
+<button class="btn btn-primary" @onclick="Load">Load</button>
+<button class="btn btn-success" @onclick="Save">Save</button>
+<p>@message</p>
+
+@code {
+    string? userId;
+    string? preferencesJson;
+    string? apiKey;
+    [Inject] HttpClient Http { get; set; } = default!;
+
+    protected override async Task OnInitializedAsync()
+    {
+        apiKey = await AppSettingsService.GetApiKeyAsync();
+        userId = await AppSettingsService.GetValue("UserId");
+    }
+
+    private async Task Load()
+    {
+        if (string.IsNullOrWhiteSpace(userId)) { message = "UserId required"; return; }
+        using var req = new HttpRequestMessage(HttpMethod.Get, $"/api/preferences/{userId}");
+        if (!string.IsNullOrWhiteSpace(apiKey)) req.Headers.Add("X-API-Key", apiKey);
+        using var res = await Http.SendAsync(req);
+        if (!res.IsSuccessStatusCode) { message = $"Load failed: {(int)res.StatusCode}"; return; }
+        var dto = await res.Content.ReadFromJsonAsync<PreferencesDto>();
+        preferencesJson = System.Text.Json.JsonSerializer.Serialize(dto?.preferences, new System.Text.Json.JsonSerializerOptions { WriteIndented = true });
+        message = "Loaded";
+    }
+
+    private async Task Save()
+    {
+        if (string.IsNullOrWhiteSpace(userId)) { message = "UserId required"; return; }
+        Dictionary<string, object>? dict = null;
+        if (!string.IsNullOrWhiteSpace(preferencesJson))
+        {
+            dict = System.Text.Json.JsonSerializer.Deserialize<Dictionary<string, object>>(preferencesJson!);
+        }
+        using var req = new HttpRequestMessage(HttpMethod.Post, $"/api/preferences/{userId}")
+        {
+            Content = JsonContent.Create(dict ?? new Dictionary<string, object>())
+        };
+        if (!string.IsNullOrWhiteSpace(apiKey)) req.Headers.Add("X-API-Key", apiKey);
+        using var res = await Http.SendAsync(req);
+        message = res.IsSuccessStatusCode ? "Saved" : $"Save failed: {(int)res.StatusCode}";
+    }
+
+    public sealed class PreferencesDto
+    {
+        public string? userId { get; set; }
+        public Dictionary<string, object>? preferences { get; set; }
+    }
+
+    string message = string.Empty;
+}
