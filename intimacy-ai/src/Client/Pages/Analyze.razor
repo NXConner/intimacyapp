@@ -1,4 +1,5 @@
 @page "/analyze"
+@using System.Text.Json
 @using Microsoft.AspNetCore.SignalR.Client
 @using Microsoft.AspNetCore.Components.Forms
 @inject IntimacyAI.Client.Services.SettingsService AppSettingsService
@@ -8,6 +9,15 @@
 <InputFile OnChange="OnFileChange" />
 <button class="btn btn-primary" @onclick="Upload" disabled="@(!canUpload)">Upload</button>
 <p>@status</p>
+@if (result is not null)
+{
+    <div class="card mt-3">
+        <h5>Results</h5>
+        <p><strong>Session:</strong> @result.sessionId</p>
+        <p><strong>Arousal:</strong> @FormatScore("arousal") | <strong>Engagement:</strong> @FormatScore("engagement")</p>
+        <p><small>@(result.metadata is not null && result.metadata.TryGetValue("width", out var w) && result.metadata.TryGetValue("height", out var h) ? $"{w}x{h}" : "")</small></p>
+    </div>
+}
 
 @code {
     IBrowserFile? file;
@@ -15,6 +25,7 @@
     string status = "";
     HubConnection? hub;
     string? apiKey;
+    AnalysisResultDto? result;
 
     [Inject] HttpClient Http { get; set; } = default!;
 
@@ -27,7 +38,22 @@
             .WithAutomaticReconnect()
             .Build();
         hub.On<string>("analysisStarted", id => status = $"Started: {id}");
-        hub.On<string>("analysisCompleted", id => status = $"Completed: {id}");
+        hub.On<string>("analysisCompleted", async id =>
+        {
+            status = $"Completed: {id}";
+            try
+            {
+                using var req = new HttpRequestMessage(HttpMethod.Get, $"/api/analysis/{id}");
+                if (!string.IsNullOrWhiteSpace(apiKey)) req.Headers.Add("X-API-Key", apiKey);
+                using var res = await Http.SendAsync(req);
+                if (res.IsSuccessStatusCode)
+                {
+                    result = await res.Content.ReadFromJsonAsync<AnalysisResultDto>();
+                }
+            }
+            catch { }
+            StateHasChanged();
+        });
         await hub.StartAsync();
     }
 
@@ -35,6 +61,29 @@
     {
         file = e.File;
         status = file is null ? "" : $"Selected {file.Name}";
+    }
+
+    private string FormatScore(string key)
+    {
+        if (result?.scores is null) return "-";
+        if (!result.scores.TryGetValue(key, out var obj) || obj is null) return "-";
+        if (obj is JsonElement je)
+        {
+            if (je.ValueKind == JsonValueKind.Number && je.TryGetDouble(out var d))
+                return d.ToString("0.000");
+        }
+        if (double.TryParse(obj.ToString(), out var val))
+            return val.ToString("0.000");
+        return obj.ToString() ?? "-";
+    }
+
+    public sealed class AnalysisResultDto
+    {
+        public string? sessionId { get; set; }
+        public string? analysisType { get; set; }
+        public Dictionary<string, object>? scores { get; set; }
+        public Dictionary<string, string>? metadata { get; set; }
+        public DateTime createdAtUtc { get; set; }
     }
 
     private async Task Upload()

@@ -138,10 +138,34 @@ app.MapPost("/api/analyze", async (HttpRequest request, IAnalysisQueue queue) =>
     return Results.Accepted($"/api/analysis/{req.SessionId}", new { sessionId = req.SessionId });
 }).DisableAntiforgery().RequireRateLimiting("fixed").WithOpenApi();
 
-app.MapGet("/api/analysis/{sessionId}", async (string sessionId, AppDbContext db) =>
+app.MapGet("/api/analysis/{sessionId}", async (string sessionId, AppDbContext db, IEncryptionService enc) =>
 {
     var item = await db.AnalysisHistories.OrderByDescending(x => x.Id).FirstOrDefaultAsync(x => x.SessionId == sessionId);
-    return item is null ? Results.NotFound() : Results.Ok(item);
+    if (item is null) return Results.NotFound();
+
+    Dictionary<string, object>? scores = null;
+    Dictionary<string, string>? metadata = null;
+
+    if (!string.IsNullOrWhiteSpace(item.ScoresJsonEncrypted))
+    {
+        var json = enc.Decrypt(item.ScoresJsonEncrypted!);
+        scores = System.Text.Json.JsonSerializer.Deserialize<Dictionary<string, object>>(json);
+    }
+    if (!string.IsNullOrWhiteSpace(item.MetadataJsonEncrypted))
+    {
+        var json = enc.Decrypt(item.MetadataJsonEncrypted!);
+        metadata = System.Text.Json.JsonSerializer.Deserialize<Dictionary<string, string>>(json);
+    }
+
+    var dto = new AnalysisResultDto
+    {
+        SessionId = item.SessionId,
+        AnalysisType = item.AnalysisType,
+        Scores = scores,
+        Metadata = metadata,
+        CreatedAtUtc = item.CreatedAtUtc
+    };
+    return Results.Ok(dto);
 }).RequireRateLimiting("fixed").WithOpenApi();
 
 app.MapGet("/api/preferences/{userId}", async (string userId, AppDbContext db, IEncryptionService enc) =>

@@ -1018,6 +1018,22 @@
           }
         }
       },
+      "SixLabors.ImageSharp/3.1.11": {
+        "type": "package",
+        "compile": {
+          "lib/net6.0/SixLabors.ImageSharp.dll": {
+            "related": ".xml"
+          }
+        },
+        "runtime": {
+          "lib/net6.0/SixLabors.ImageSharp.dll": {
+            "related": ".xml"
+          }
+        },
+        "build": {
+          "build/_._": {}
+        }
+      },
       "SQLitePCLRaw.bundle_e_sqlite3/2.1.6": {
         "type": "package",
         "dependencies": {
@@ -2411,6 +2427,7 @@
           "Microsoft.EntityFrameworkCore": "8.0.8",
           "Microsoft.EntityFrameworkCore.Sqlite": "8.0.8",
           "Microsoft.Extensions.Diagnostics.HealthChecks.EntityFrameworkCore": "8.0.8",
+          "SixLabors.ImageSharp": "3.1.11",
           "Swashbuckle.AspNetCore": "6.6.2"
         },
         "compile": {
@@ -3961,6 +3978,22 @@
         "runtime.ubuntu.16.10-x64.runtime.native.system.security.cryptography.openssl.4.3.0.nupkg.sha512",
         "runtime.ubuntu.16.10-x64.runtime.native.system.security.cryptography.openssl.nuspec",
         "runtimes/ubuntu.16.10-x64/native/System.Security.Cryptography.Native.OpenSsl.so"
+      ]
+    },
+    "SixLabors.ImageSharp/3.1.11": {
+      "sha512": "JfPLyigLthuE50yi6tMt7Amrenr/fA31t2CvJyhy/kQmfulIBAqo5T/YFUSRHtuYPXRSaUHygFeh6Qd933EoSw==",
+      "type": "package",
+      "path": "sixlabors.imagesharp/3.1.11",
+      "files": [
+        ".nupkg.metadata",
+        ".signature.p7s",
+        "LICENSE",
+        "build/SixLabors.ImageSharp.props",
+        "lib/net6.0/SixLabors.ImageSharp.dll",
+        "lib/net6.0/SixLabors.ImageSharp.xml",
+        "sixlabors.imagesharp.128.png",
+        "sixlabors.imagesharp.3.1.11.nupkg.sha512",
+        "sixlabors.imagesharp.nuspec"
       ]
     },
     "SQLitePCLRaw.bundle_e_sqlite3/2.1.6": {

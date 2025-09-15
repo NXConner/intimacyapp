@@ -1,6 +1,6 @@
 {
   "Version": 1,
-  "Hash": "GjUtjbAMHPczYI/MexRTqW+orpNfAHGdCADLpDRyN0U=",
+  "Hash": "fRe28trvA0U8f60Oou1JACQmv5HuC/HrXO8jOy748yA=",
   "Source": "IntimacyAI.Client",
   "BasePath": "/",
   "Mode": "Root",
@@ -8242,25 +8242,6 @@
       "CopyToOutputDirectory": "Never",
       "CopyToPublishDirectory": "PreserveNewest",
       "OriginalItemSpec": "wwwroot/index.html"
-    },
-    {
-      "Identity": "/workspace/intimacy-ai/src/Client/wwwroot/sample-data/weather.json",
-      "SourceId": "IntimacyAI.Client",
-      "SourceType": "Discovered",
-      "ContentRoot": "/workspace/intimacy-ai/src/Client/wwwroot/",
-      "BasePath": "/",
-      "RelativePath": "sample-data/weather.json",
-      "AssetKind": "All",
-      "AssetMode": "All",
-      "AssetRole": "Primary",
-      "AssetMergeBehavior": "PreferTarget",
-      "AssetMergeSource": "",
-      "RelatedAsset": "",
-      "AssetTraitName": "",
-      "AssetTraitValue": "",
-      "CopyToOutputDirectory": "Never",
-      "CopyToPublishDirectory": "PreserveNewest",
-      "OriginalItemSpec": "wwwroot/sample-data/weather.json"
     }
   ]
 }

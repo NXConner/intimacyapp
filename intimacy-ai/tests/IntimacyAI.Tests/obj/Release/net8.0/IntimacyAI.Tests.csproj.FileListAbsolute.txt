@@ -145,3 +145,4 @@
 /workspace/intimacy-ai/tests/IntimacyAI.Tests/obj/Release/net8.0/IntimacyAI.Tests.pdb
 /workspace/intimacy-ai/tests/IntimacyAI.Tests/obj/Release/net8.0/IntimacyAI.Tests.genruntimeconfig.cache
 /workspace/intimacy-ai/tests/IntimacyAI.Tests/obj/Release/net8.0/ref/IntimacyAI.Tests.dll
+/workspace/intimacy-ai/tests/IntimacyAI.Tests/bin/Release/net8.0/SixLabors.ImageSharp.dll
