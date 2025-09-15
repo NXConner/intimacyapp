@@ -1,6 +1,6 @@
 {
   "version": 2,
-  "dgSpecHash": "7GewB3J8z9U=",
+  "dgSpecHash": "Bpm+ptS0V68=",
   "success": true,
   "projectFilePath": "/workspace/intimacy-ai/tests/IntimacyAI.Tests/IntimacyAI.Tests.csproj",
   "expectedPackageFiles": [
@@ -31,6 +31,8 @@
     "/home/ubuntu/.nuget/packages/microsoft.extensions.logging.abstractions/8.0.1/microsoft.extensions.logging.abstractions.8.0.1.nupkg.sha512",
     "/home/ubuntu/.nuget/packages/microsoft.extensions.options/8.0.2/microsoft.extensions.options.8.0.2.nupkg.sha512",
     "/home/ubuntu/.nuget/packages/microsoft.extensions.primitives/8.0.0/microsoft.extensions.primitives.8.0.0.nupkg.sha512",
+    "/home/ubuntu/.nuget/packages/microsoft.ml.onnxruntime/1.19.2/microsoft.ml.onnxruntime.1.19.2.nupkg.sha512",
+    "/home/ubuntu/.nuget/packages/microsoft.ml.onnxruntime.managed/1.19.2/microsoft.ml.onnxruntime.managed.1.19.2.nupkg.sha512",
     "/home/ubuntu/.nuget/packages/microsoft.net.test.sdk/17.8.0/microsoft.net.test.sdk.17.8.0.nupkg.sha512",
     "/home/ubuntu/.nuget/packages/microsoft.netcore.platforms/1.1.0/microsoft.netcore.platforms.1.1.0.nupkg.sha512",
     "/home/ubuntu/.nuget/packages/microsoft.netcore.targets/1.1.0/microsoft.netcore.targets.1.1.0.nupkg.sha512",
@@ -85,7 +87,7 @@
     "/home/ubuntu/.nuget/packages/system.io.filesystem.primitives/4.3.0/system.io.filesystem.primitives.4.3.0.nupkg.sha512",
     "/home/ubuntu/.nuget/packages/system.linq/4.3.0/system.linq.4.3.0.nupkg.sha512",
     "/home/ubuntu/.nuget/packages/system.linq.expressions/4.3.0/system.linq.expressions.4.3.0.nupkg.sha512",
-    "/home/ubuntu/.nuget/packages/system.memory/4.5.3/system.memory.4.5.3.nupkg.sha512",
+    "/home/ubuntu/.nuget/packages/system.memory/4.5.5/system.memory.4.5.5.nupkg.sha512",
     "/home/ubuntu/.nuget/packages/system.net.http/4.3.0/system.net.http.4.3.0.nupkg.sha512",
     "/home/ubuntu/.nuget/packages/system.net.primitives/4.3.0/system.net.primitives.4.3.0.nupkg.sha512",
     "/home/ubuntu/.nuget/packages/system.net.sockets/4.3.0/system.net.sockets.4.3.0.nupkg.sha512",

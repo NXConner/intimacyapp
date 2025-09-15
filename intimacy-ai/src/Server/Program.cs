@@ -59,7 +59,16 @@ builder.Services.AddRateLimiter(_ => _.AddFixedWindowLimiter("fixed", options =>
 builder.Services.AddSingleton<IAnalysisQueue, AnalysisQueue>();
 builder.Services.AddHostedService<AnalysisWorker>();
 builder.Services.AddSingleton<IEncryptionService, EncryptionService>();
-builder.Services.AddSingleton<IModelInferenceService, PlaceholderModelInferenceService>();
+builder.Services.Configure<OnnxOptions>(builder.Configuration.GetSection("Onnx"));
+var onnxEnabled = builder.Configuration.GetValue<bool>("Onnx:Enabled");
+if (onnxEnabled)
+{
+    builder.Services.AddSingleton<IModelInferenceService, OnnxModelInferenceService>();
+}
+else
+{
+    builder.Services.AddSingleton<IModelInferenceService, PlaceholderModelInferenceService>();
+}
 builder.Services.AddHealthChecks()
     .AddCheck("self", () => HealthCheckResult.Healthy())
     .AddDbContextCheck<AppDbContext>(name: "db");
