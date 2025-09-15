@@ -1,0 +1,95 @@
+name: CI CD Build
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  build-windows:
+    name: Build Windows (WPF)
+    runs-on: windows-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup .NET 8.x
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '8.0.x'
+          cache: true
+
+      - name: Restore
+        working-directory: intimacy-ai/platform/windows/WpfApp
+        run: dotnet restore
+
+      - name: Publish (win-x64)
+        working-directory: intimacy-ai/platform/windows/WpfApp
+        run: dotnet publish -c Release -r win-x64 --self-contained false /p:PublishSingleFile=true
+
+      - name: Locate publish directory
+        shell: pwsh
+        run: |
+          $publishDir = Get-ChildItem -Path "intimacy-ai/platform/windows/WpfApp/bin/Release/*/win-x64/publish" -Directory -Recurse | Sort-Object LastWriteTime -Descending | Select-Object -First 1
+          if (-not $publishDir) { throw "Publish directory not found" }
+          "PUBLISH_DIR=$($publishDir.FullName)" | Out-File -FilePath $env:GITHUB_ENV -Append
+
+      - name: Upload Windows artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: AdvancedIntimacyAI-Windows
+          path: ${{ env.PUBLISH_DIR }}
+          if-no-files-found: error
+
+  build-android:
+    name: Build Android (APK)
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Java 17
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'temurin'
+          java-version: '17'
+
+      - name: Set up Android SDK
+        uses: android-actions/setup-android@v3
+        with:
+          accept-licenses: true
+
+      - name: Install Android SDK components (API 34)
+        run: |
+          yes | sdkmanager --licenses
+          sdkmanager "platform-tools" "platforms;android-34" "build-tools;34.0.0"
+
+      - name: Cache Gradle
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.gradle/caches
+            ~/.gradle/wrapper
+          key: ${{ runner.os }}-gradle-${{ hashFiles('**/*.gradle*', '**/gradle-wrapper.properties') }}
+          restore-keys: |
+            ${{ runner.os }}-gradle-
+
+      - name: Verify Gradle availability
+        run: gradle --version || true
+
+      - name: Generate Gradle wrapper (Gradle 8.9)
+        working-directory: intimacy-ai/platform/android
+        run: gradle wrapper --gradle-version 8.9
+
+      - name: Build Debug APK
+        working-directory: intimacy-ai/platform/android
+        run: ./gradlew --no-daemon assembleDebug
+
+      - name: Upload Android artifact (APK)
+        uses: actions/upload-artifact@v4
+        with:
+          name: AdvancedIntimacyAI-Android
+          path: intimacy-ai/platform/android/app/build/outputs/apk/debug/app-debug.apk
+          if-no-files-found: error
+
