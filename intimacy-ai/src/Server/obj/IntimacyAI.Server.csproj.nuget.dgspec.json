@@ -93,7 +93,7 @@
               "privateAssets": "all"
             }
           },
-          "runtimeIdentifierGraphPath": "/home/ubuntu/dotnet/sdk/8.0.414/PortableRuntimeIdentifierGraph.json"
+          "runtimeIdentifierGraphPath": "/workspace/.dotnet/sdk/8.0.414/PortableRuntimeIdentifierGraph.json"
         }
       }
     }

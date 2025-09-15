@@ -67,7 +67,7 @@
             },
             "SixLabors.ImageSharp": {
               "target": "Package",
-              "version": "[3.1.4, )"
+              "version": "[3.1.11, )"
             },
             "Swashbuckle.AspNetCore": {
               "target": "Package",
@@ -93,7 +93,7 @@
               "privateAssets": "all"
             }
           },
-          "runtimeIdentifierGraphPath": "/home/ubuntu/dotnet/sdk/8.0.414/PortableRuntimeIdentifierGraph.json"
+          "runtimeIdentifierGraphPath": "/workspace/.dotnet/sdk/8.0.414/PortableRuntimeIdentifierGraph.json"
         }
       }
     },
@@ -173,7 +173,7 @@
               "privateAssets": "all"
             }
           },
-          "runtimeIdentifierGraphPath": "/home/ubuntu/dotnet/sdk/8.0.414/PortableRuntimeIdentifierGraph.json"
+          "runtimeIdentifierGraphPath": "/workspace/.dotnet/sdk/8.0.414/PortableRuntimeIdentifierGraph.json"
         }
       }
     }

@@ -1,7 +1,7 @@
 {
   "mainAssemblyName": "IntimacyAI.Client",
   "resources": {
-    "hash": "sha256-0UJXJqNpbC1cCWpYrGr2UaaXSSgZbHhBqYu++YZRGeo=",
+    "hash": "sha256-oDTQ1s6U9ktwfXjTnEvHXNreVSWKV9g3YIsS4AJfwmk=",
     "jsModuleNative": {
       "dotnet.native.8.0.20.h07ghtf40t.js": "sha256-D0bzod5lwwSzPR43JC8TTCcZKw+3jIHOk8CZFCRj5is="
     },
@@ -216,10 +216,10 @@
       "mscorlib.wasm": "sha256-8qWtIcy8fV43tlcx4DxsF45RlkcfK6588vVoxF7be2E=",
       "netstandard.wasm": "sha256-eOgz2RiO4YaPLOMIGgVLNrcfsQhmLQJzR0N7Pu2teXc=",
       "System.Private.CoreLib.wasm": "sha256-F8T63QCIbMPXPQPqTcuyBAw+oVvZSrWjy88j7fiJQZ4=",
-      "IntimacyAI.Client.wasm": "sha256-lVYrFeIhhR6Mm+lyffcxYXsyS/Kut3kQnG4SHyu5Cqo="
+      "IntimacyAI.Client.wasm": "sha256-SPrq7OEVwVeKFF8PMHDsKNXTW3VGHhLb4+Ttji6HEcM="
     },
     "pdb": {
-      "IntimacyAI.Client.pdb": "sha256-NG/NdsQToUNgl90oVu9iJ1NmyQLugSu+9AgIhK8FEPs="
+      "IntimacyAI.Client.pdb": "sha256-xJoprGzGazO1ZvT9s+QFZBrMToVz48PGCel7Vu+deYc="
     }
   },
   "cacheBootResources": true,
