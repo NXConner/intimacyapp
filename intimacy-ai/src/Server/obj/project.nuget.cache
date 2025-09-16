@@ -1,6 +1,6 @@
 {
   "version": 2,
-  "dgSpecHash": "klB3jnWxBDY=",
+  "dgSpecHash": "gMxvvoWZZCU=",
   "success": true,
   "projectFilePath": "/workspace/intimacy-ai/src/Server/IntimacyAI.Server.csproj",
   "expectedPackageFiles": [
@@ -68,12 +68,5 @@
     "/home/ubuntu/.nuget/packages/system.text.json/8.0.4/system.text.json.8.0.4.nupkg.sha512",
     "/home/ubuntu/.nuget/packages/system.threading.channels/6.0.0/system.threading.channels.6.0.0.nupkg.sha512"
   ],
-  "logs": [
-    {
-      "code": "Undefined",
-      "level": "Warning",
-      "warningLevel": 1,
-      "message": "Problem reading the cache file /workspace/intimacy-ai/src/Server/obj/project.nuget.cache : Value cannot be null. (Parameter 'value')"
-    }
-  ]
+  "logs": []
 }
