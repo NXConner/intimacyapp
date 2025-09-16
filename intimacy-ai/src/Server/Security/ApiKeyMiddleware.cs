@@ -21,7 +21,7 @@ namespace IntimacyAI.Server.Security
         public async Task InvokeAsync(HttpContext context)
         {
             var path = context.Request.Path.Value ?? string.Empty;
-            if (path.StartsWith("/swagger") || path.Equals("/health"))
+            if (path.StartsWith("/swagger") || path.Equals("/health") || path.Equals("/healthz"))
             {
                 await _next(context);
                 return;
@@ -39,7 +39,35 @@ namespace IntimacyAI.Server.Security
                 return;
             }
 
-            if (!context.Request.Headers.TryGetValue("X-API-Key", out var provided) || provided != _expectedKey)
+            var isAuthorized = false;
+
+            // 1) Custom header X-API-Key
+            if (context.Request.Headers.TryGetValue("X-API-Key", out var providedHeader) && providedHeader == _expectedKey)
+            {
+                isAuthorized = true;
+            }
+
+            // 2) Authorization: Bearer <key>
+            if (!isAuthorized && context.Request.Headers.TryGetValue("Authorization", out var authHeader))
+            {
+                var authVal = authHeader.ToString();
+                if (authVal.StartsWith("Bearer ", StringComparison.OrdinalIgnoreCase))
+                {
+                    var token = authVal.Substring("Bearer ".Length).Trim();
+                    if (string.Equals(token, _expectedKey, StringComparison.Ordinal))
+                    {
+                        isAuthorized = true;
+                    }
+                }
+            }
+
+            // 3) Query string access_token=<key> (used by SignalR/WebSockets)
+            if (!isAuthorized && context.Request.Query.TryGetValue("access_token", out var qsToken) && qsToken == _expectedKey)
+            {
+                isAuthorized = true;
+            }
+
+            if (!isAuthorized)
             {
                 context.Response.StatusCode = StatusCodes.Status401Unauthorized;
                 await context.Response.WriteAsync("Unauthorized");

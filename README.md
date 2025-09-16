@@ -19,6 +19,12 @@ dotnet run -c Release --urls http://0.0.0.0:5087
 ```
 - Swagger: http://localhost:5087/swagger
 - Health: http://localhost:5087/health
+ 
+Auth options (API key middleware):
+- Preferred: `Authorization: Bearer <API_KEY>`
+- Also accepted: header `X-API-Key: <API_KEY>`
+- WebSockets/SignalR: query `access_token=<API_KEY>`
+- Unprotected endpoints: `/swagger/*`, `/health`, `/healthz`
 
 Inference configuration:
 - ONNX runtime:
@@ -47,6 +53,10 @@ Open http://localhost:5175
 
 - Go to Settings to set API Base URL (default http://localhost:5087) and API Key.
 - Home page loads health, recent analytics, and allows posting a sample analytics record.
+ 
+SignalR configuration:
+- The Analyze page connects to `$(ApiBaseUrl)/hubs/analysis`.
+- The API key is passed as an access token for WebSocket auth.
 
 ### Helper Scripts
 - Unix: `./run.sh server|client|build|test`

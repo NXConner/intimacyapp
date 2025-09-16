@@ -163,7 +163,7 @@ app.MapPost("/api/analyze", async (HttpRequest request, IAnalysisQueue queue) =>
     };
     queue.Enqueue(req);
     return Results.Accepted($"/api/analysis/{req.SessionId}", new { sessionId = req.SessionId });
-}).DisableAntiforgery().RequireRateLimiting("fixed").WithOpenApi();
+}).DisableAntiforgery().RequireRateLimiting("fixed").WithMetadata(new Microsoft.AspNetCore.Mvc.RequestSizeLimitAttribute(20 * 1024 * 1024)).WithOpenApi();
 
 app.MapGet("/api/analysis/{sessionId}", async (string sessionId, AppDbContext db, IEncryptionService enc) =>
 {
