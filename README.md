@@ -33,7 +33,7 @@ Inference configuration:
 - HTTP backend:
   - set `HttpInference:BaseUrl` and optionally `HttpInference:ApiKey`
   - env vars: `HttpInference__BaseUrl`, `HttpInference__ApiKey`, `HttpInference__ApiKeyHeader`
-The server selects: ONNX if enabled, else HTTP if BaseUrl is set, else placeholder heuristic.
+The server requires a configured inference backend: ONNX if enabled, else HTTP if BaseUrl is set. If neither is configured, startup fails with an error.
 
 API security:
 - In Development, a default key is set in `src/Server/appsettings.Development.json` (`Security:ApiKey`).
@@ -80,8 +80,8 @@ k6 run -e API=http://localhost:8080 -e KEY=dev-key k6-loadtest.js
 - Projects:
   - `src/Server` - ASP.NET Core minimal API, EF Core SQLite
   - `src/Client` - Blazor WebAssembly
-  - `platform/windows/WpfApp` - Windows WPF stub app (not in solution)
-  - `platform/android` - Android Kotlin/Compose stub app (standalone Gradle)
+  - `platform/windows/WpfApp` - Windows WPF sample app (not in solution)
+  - `platform/android` - Android Kotlin/Compose sample app (standalone Gradle)
 
 ### Database
 - SQLite file is created at runtime (`src/Server/app.db`) and is ignored by git.
@@ -128,7 +128,7 @@ dotnet run -c Release
 ```
 App calls API at `http://localhost:5087` and uses `X-API-Key: dev-key`.
 
-## Android App (Stub)
+## Android App
 Requires Android Studio / Gradle.
 
 From `platform/android` in Android environment:

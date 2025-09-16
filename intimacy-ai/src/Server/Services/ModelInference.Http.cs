@@ -78,34 +78,4 @@ namespace IntimacyAI.Server.Services
 			public Dictionary<string, string>? Metadata { get; set; }
 		}
 	}
-
-	// Lightweight mock for local development when an external HTTP inference backend is not available.
-	// Map under /mock-inference/analyze to accept multipart file and return synthetic scores.
-	public static class HttpInferenceMockEndpoint
-	{
-		public static void MapHttpInferenceMock(this WebApplication app)
-		{
-			app.MapPost("/mock-inference/analyze", async (HttpRequest request) =>
-			{
-				if (!request.HasFormContentType) return Results.BadRequest("multipart/form-data required");
-				var form = await request.ReadFormAsync();
-				var file = form.Files.GetFile("file");
-				if (file is null || file.Length == 0) return Results.BadRequest("file is required");
-				// Return deterministic fake scores
-				var payload = new
-				{
-					Scores = new Dictionary<string, object>
-					{
-						["arousal"] = 0.42,
-						["engagement"] = 0.73
-					},
-					Metadata = new Dictionary<string, string>
-					{
-						["filename"] = file.FileName
-					}
-				};
-				return Results.Ok(payload);
-			}).WithOpenApi();
-		}
-	}
 }

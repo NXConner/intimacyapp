@@ -110,7 +110,7 @@ else
     }
     else
     {
-        builder.Services.AddSingleton<IModelInferenceService, PlaceholderModelInferenceService>();
+        throw new InvalidOperationException("Inference backend not configured. Provide Onnx:Enabled=true with Onnx:ModelPath or HttpInference:BaseUrl.");
     }
 }
 builder.Services.AddHealthChecks()
@@ -154,11 +154,7 @@ if (!string.IsNullOrWhiteSpace(signingKey))
 }
 app.UseMiddleware<ApiKeyMiddleware>();
 
-// Optional mock inference endpoint (unauthenticated) in Development only
-if (app.Environment.IsDevelopment())
-{
-    HttpInferenceMockEndpoint.MapHttpInferenceMock(app);
-}
+
 
 // Auth endpoints
 AuthEndpoints.MapAuth(app);

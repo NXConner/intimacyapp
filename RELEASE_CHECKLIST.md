@@ -14,8 +14,8 @@
 ## Functionality
 - API endpoints pass integration tests
 - Blazor client: health, analytics, model performance, analyze upload
-- Windows WPF stub: analytics posting, SignalR status
-- Android stub: preferences saved, analytics posting via emulator
+- Windows WPF sample: analytics posting, SignalR status
+- Android sample: preferences saved, analytics posting via emulator
 
 ## Performance
 - Basic load test: 1k RPS target on read endpoints
