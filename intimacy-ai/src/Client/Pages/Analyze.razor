@@ -32,9 +32,20 @@
     protected override async Task OnInitializedAsync()
     {
         apiKey = await AppSettingsService.GetApiKeyAsync();
-        var baseUrl = Http.BaseAddress?.ToString()?.TrimEnd('/');
+        var baseUrl = await AppSettingsService.GetApiBaseUrlAsync();
+        if (string.IsNullOrWhiteSpace(baseUrl))
+        {
+            baseUrl = Http.BaseAddress?.ToString();
+        }
+        baseUrl = baseUrl?.TrimEnd('/');
         hub = new HubConnectionBuilder()
-            .WithUrl($"{baseUrl}/hubs/analysis")
+            .WithUrl($"{baseUrl}/hubs/analysis", options =>
+            {
+                if (!string.IsNullOrWhiteSpace(apiKey))
+                {
+                    options.AccessTokenProvider = () => Task.FromResult<string?>(apiKey);
+                }
+            })
             .WithAutomaticReconnect()
             .Build();
         hub.On<string>("analysisStarted", id => status = $"Started: {id}");
