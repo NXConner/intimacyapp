@@ -1,0 +1,12 @@
+{
+  "project_type": "multi_platform_ai_app",
+  "languages": ["csharp", "kotlin", "python"],
+  "frameworks": ["dotnet", "android", "tensorflow"],
+  "ai_assistance": {
+    "code_generation": true,
+    "code_review": true,
+    "documentation": true,
+    "testing": true
+  }
+}
+
