@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 set -euo pipefail
 cd platform/android
-# Use Android Studio for full build; this script is a placeholder for CLI builds.
+# Use Android Studio for full build; this script provides a basic CLI build entrypoint.
 if [ -x ./gradlew ]; then
   ./gradlew assembleDebug
 else
