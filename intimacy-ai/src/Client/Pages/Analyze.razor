@@ -6,7 +6,7 @@
 
 <h3>Analyze</h3>
 
-<InputFile OnChange="OnFileChange" />
+<InputFile OnChange="OnFileChange" accept="image/*,video/*" />
 <button class="btn btn-primary" @onclick="Upload" disabled="@(!canUpload)">Upload</button>
 <p>@status</p>
 @if (result is not null)
@@ -14,8 +14,12 @@
     <div class="card mt-3">
         <h5>Results</h5>
         <p><strong>Session:</strong> @result.sessionId</p>
+        <p><strong>Type:</strong> @result.analysisType</p>
         <p><strong>Arousal:</strong> @FormatScore("arousal") | <strong>Engagement:</strong> @FormatScore("engagement")</p>
-        <p><small>@(result.metadata is not null && result.metadata.TryGetValue("width", out var w) && result.metadata.TryGetValue("height", out var h) ? $"{w}x{h}" : "")</small></p>
+        <p><small>
+            @(result.metadata is not null && result.metadata.TryGetValue("width", out var w) && result.metadata.TryGetValue("height", out var h) ? $"{w}x{h}" : "")
+            @((result.metadata is not null && result.metadata.TryGetValue("contentType", out var ct) && !string.IsNullOrWhiteSpace(ct)) ? $" | {ct}" : "")
+        </small></p>
     </div>
 }
 
@@ -103,7 +107,7 @@
         try
         {
             var content = new MultipartFormDataContent();
-            using var stream = file.OpenReadStream(maxAllowedSize: 20 * 1024 * 1024);
+            using var stream = file.OpenReadStream(maxAllowedSize: 200 * 1024 * 1024);
             content.Add(new StreamContent(stream), "file", file.Name);
             using var req = new HttpRequestMessage(HttpMethod.Post, "/api/analyze") { Content = content };
             if (!string.IsNullOrWhiteSpace(apiKey)) req.Headers.Add("X-API-Key", apiKey);

@@ -49,12 +49,18 @@ namespace IntimacyAI.Server.Services
                         var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
                         var enc = scope.ServiceProvider.GetRequiredService<IEncryptionService>();
 
+                        var mergedMetadata = new Dictionary<string, string>(req.Metadata ?? new Dictionary<string, string>());
+                        foreach (var kvp in inf.Metadata)
+                        {
+                            mergedMetadata[kvp.Key] = kvp.Value;
+                        }
+
                         var record = new AnalysisHistory
                         {
                             SessionId = req.SessionId,
                             AnalysisType = req.AnalysisType,
                             ScoresJsonEncrypted = enc.Encrypt(System.Text.Json.JsonSerializer.Serialize(inf.Scores)),
-                            MetadataJsonEncrypted = enc.Encrypt(System.Text.Json.JsonSerializer.Serialize(inf.Metadata)),
+                            MetadataJsonEncrypted = enc.Encrypt(System.Text.Json.JsonSerializer.Serialize(mergedMetadata)),
                             CreatedAtUtc = DateTime.UtcNow
                         };
                         db.AnalysisHistories.Add(record);
