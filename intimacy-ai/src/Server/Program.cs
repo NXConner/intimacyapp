@@ -202,15 +202,22 @@ app.MapPost("/api/analyze", async (HttpRequest request, IAnalysisQueue queue) =>
     if (file is null || file.Length == 0) return Results.BadRequest("file is required");
     using var ms = new MemoryStream();
     await file.CopyToAsync(ms);
+    var contentType = file.ContentType?.ToLowerInvariant() ?? string.Empty;
+    var isVideo = contentType.StartsWith("video/") || 
+                  file.FileName.EndsWith(".mp4", StringComparison.OrdinalIgnoreCase) ||
+                  file.FileName.EndsWith(".webm", StringComparison.OrdinalIgnoreCase) ||
+                  file.FileName.EndsWith(".mkv", StringComparison.OrdinalIgnoreCase) ||
+                  file.FileName.EndsWith(".mov", StringComparison.OrdinalIgnoreCase) ||
+                  file.FileName.EndsWith(".avi", StringComparison.OrdinalIgnoreCase);
     var req = new AnalysisRequest
     {
-        AnalysisType = "image",
+        AnalysisType = isVideo ? "video" : "image",
         Data = ms.ToArray(),
-        Metadata = new Dictionary<string, string> { { "filename", file.FileName } }
+        Metadata = new Dictionary<string, string> { { "filename", file.FileName }, { "contentType", file.ContentType ?? string.Empty } }
     };
     queue.Enqueue(req);
     return Results.Accepted($"/api/analysis/{req.SessionId}", new { sessionId = req.SessionId });
-}).DisableAntiforgery().RequireRateLimiting("fixed").WithMetadata(new Microsoft.AspNetCore.Mvc.RequestSizeLimitAttribute(20 * 1024 * 1024)).WithOpenApi();
+}).DisableAntiforgery().RequireRateLimiting("fixed").WithMetadata(new Microsoft.AspNetCore.Mvc.RequestSizeLimitAttribute(200 * 1024 * 1024)).WithOpenApi();
 
 app.MapGet("/api/analysis/{sessionId}", async (string sessionId, AppDbContext db, IEncryptionService enc) =>
 {

@@ -36,7 +36,15 @@ namespace IntimacyAI.Server.Services
                         // Run model inference via abstraction
                         using var scope = _services.CreateScope();
                         var inference = scope.ServiceProvider.GetRequiredService<IModelInferenceService>();
-                        var inf = await inference.AnalyzeImageAsync(req.Data, req.Metadata, stoppingToken);
+                        ModelInferenceResult inf;
+                        if (string.Equals(req.AnalysisType, "video", StringComparison.OrdinalIgnoreCase))
+                        {
+                            inf = await inference.AnalyzeVideoAsync(req.Data, req.Metadata, stoppingToken);
+                        }
+                        else
+                        {
+                            inf = await inference.AnalyzeImageAsync(req.Data, req.Metadata, stoppingToken);
+                        }
 
                         var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
                         var enc = scope.ServiceProvider.GetRequiredService<IEncryptionService>();
