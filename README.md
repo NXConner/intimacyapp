@@ -6,7 +6,7 @@ A minimal end-to-end scaffold based on the provided requirements PDF:
 
 ## Prerequisites
 - Linux/macOS/Windows
-- .NET 8 SDK (this repo uses local install via script if needed)
+- .NET 9 SDK (this repo uses local install via script if needed)
 
 ## Getting Started
 
@@ -117,7 +117,7 @@ GitHub Actions workflow under `.github/workflows/ci.yml` builds and tests on pus
 - Use JWT auth by setting `Jwt__SigningKey` and preferring Bearer tokens over API keys.
 
 ## Windows WPF App
-Requires Windows with .NET 8 SDK and Windows 10 SDK.
+Requires Windows with .NET 9 SDK and Windows 10 SDK.
 
 From `platform/windows/WpfApp`:
 ```
