@@ -13,3 +13,6 @@ intimacy-ai/src/Server/app.db
 # Node/bundle artifacts
 **/wwwroot/_framework/
 
+# Core dumps
+**/core
+
