@@ -1,7 +1,6 @@
 using IntimacyAI.Server.Data;
 using IntimacyAI.Server.Models;
 using IntimacyAI.Server.Security;
-using IntimacyAI.Server.Services;
 using IntimacyAI.Server.Hubs;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.AspNetCore.RateLimiting;
@@ -92,7 +91,7 @@ if (!string.IsNullOrWhiteSpace(signingKey))
 builder.Services.AddSingleton<IAnalysisQueue, AnalysisQueue>();
 builder.Services.AddHostedService<AnalysisWorker>();
 builder.Services.AddSingleton<IEncryptionService, EncryptionService>();
-builder.Services.AddSingleton<IntimacyAI.Server.Services.ICoachingService, IntimacyAI.Server.Services.SimpleCoachingService>();
+builder.Services.AddSingleton<ICoachingService, SimpleCoachingService>();
 builder.Services.AddSingleton<IntimacyAI.Server.Security.IKeyDerivationService, IntimacyAI.Server.Security.KeyDerivationService>();
 // Configure inference options and register the inference service implementation
 builder.Services.Configure<OnnxOptions>(builder.Configuration.GetSection("Onnx"));
@@ -492,7 +491,7 @@ app.MapGet("/api/v1/analysis/history", async (string? sessionId, int? skip, int?
 }).RequireRateLimiting("fixed").WithOpenApi();
 
 // Coaching suggestions
-app.MapPost("/api/v1/coaching/suggestions", async (Dictionary<string, object> analysis, Services.ICoachingService coach) =>
+app.MapPost("/api/v1/coaching/suggestions", async (Dictionary<string, object> analysis, ICoachingService coach) =>
 {
     var suggestions = coach.GenerateSuggestions(analysis);
     return Results.Ok(new { suggestions });

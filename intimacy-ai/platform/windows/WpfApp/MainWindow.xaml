@@ -1,27 +1,7 @@
 <Window x:Class="WpfApp.MainWindow"
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-        Title="Intimacy AI" Height="240" Width="420">
-  <Grid Margin="12">
-    <Grid.RowDefinitions>
-      <RowDefinition Height="Auto"/>
-      <RowDefinition Height="*"/>
-      <RowDefinition Height="Auto"/>
-    </Grid.RowDefinitions>
-    <StackPanel Orientation="Horizontal" Margin="0,0,0,8">
-      <Button Width="120" Margin="0,0,8,0" Content="Connect" Click="OnConnect"/>
-      <Button Width="120" Margin="0,0,8,0" Content="Windows Hello" Click="OnHello"/>
-      <Button Width="120" Margin="0,0,8,0" Content="Tray" Click="OnTray"/>
-      <Button Width="120" Content="Notify" Click="OnNotify"/>
-    </StackPanel>
-    <Border Grid.Row="1" BorderBrush="#DDD" BorderThickness="1" Padding="8">
-      <TextBlock Name="StatusText" Text="Status: idle"/>
-    </Border>
-    <TextBlock Grid.Row="2" Margin="0,8,0,0" Text="Demo UI for platform integration"/>
-  </Grid>
-</Window>
-
-<Window x:Class="WpfApp.MainWindow" xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation" xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml" Title="IntimacyAI" Height="350" Width="525">
+        Title="IntimacyAI" Height="350" Width="525">
   <Grid>
     <StackPanel Margin="20">
       <TextBlock Text="Windows Demo" FontSize="22"/>
