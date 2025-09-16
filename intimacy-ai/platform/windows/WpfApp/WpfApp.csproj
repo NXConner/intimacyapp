@@ -4,6 +4,17 @@
     <TargetFramework>net8.0-windows10.0.19041.0</TargetFramework>
     <UseWPF>true</UseWPF>
     <Nullable>enable</Nullable>
+    <Platforms>x64;x86;AnyCPU</Platforms>
+    <Prefer32Bit>false</Prefer32Bit>
+    <EnableWindowsTargeting>true</EnableWindowsTargeting>
+    <ApplicationManifest>app.manifest</ApplicationManifest>
+    <EnablePreviewMsixTooling>false</EnablePreviewMsixTooling>
+    <PublishSingleFile>false</PublishSingleFile>
+    <PublishReadyToRun>true</PublishReadyToRun>
+    <TieredCompilation>true</TieredCompilation>
+    <ServerGarbageCollection>true</ServerGarbageCollection>
+    <UseWindowsForms>false</UseWindowsForms>
+    <HighEntropyVA>true</HighEntropyVA>
   </PropertyGroup>
   <ItemGroup>
     <PackageReference Include="Microsoft.AspNetCore.SignalR.Client" Version="8.0.8" />
