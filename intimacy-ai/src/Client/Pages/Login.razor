@@ -1,0 +1,47 @@
+@page "/login"
+@inject IntimacyAI.Client.Services.SettingsService AppSettingsService
+
+<h3>Login</h3>
+
+<div class="mb-3">
+    <label>Username</label>
+    <input class="form-control" @bind="username" />
+ </div>
+<div class="mb-3">
+    <label>Password</label>
+    <input class="form-control" type="password" @bind="password" />
+ </div>
+<button class="btn btn-primary" @onclick="Login">Login</button>
+<p>@message</p>
+
+@code {
+    string username = "";
+    string password = "";
+    string message = string.Empty;
+    string? apiBaseUrl;
+    [Inject] HttpClient Http { get; set; } = default!;
+
+    protected override async Task OnInitializedAsync()
+    {
+        apiBaseUrl = Http.BaseAddress?.ToString();
+    }
+
+    private async Task Login()
+    {
+        using var req = new HttpRequestMessage(HttpMethod.Post, "/api/auth/login")
+        {
+            Content = JsonContent.Create(new { username, password })
+        };
+        using var res = await Http.SendAsync(req);
+        if (!res.IsSuccessStatusCode) { message = $"Login failed: {(int)res.StatusCode}"; return; }
+        var json = await res.Content.ReadFromJsonAsync<LoginResponse>();
+        if (string.IsNullOrWhiteSpace(json?.access_token)) { message = "No token"; return; }
+        await AppSettingsService.SetValue("JwtToken", json!.access_token!);
+        message = "Logged in";
+    }
+
+    private sealed class LoginResponse
+    {
+        public string? access_token { get; set; }
+    }
+}

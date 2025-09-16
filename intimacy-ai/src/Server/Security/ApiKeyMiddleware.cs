@@ -27,6 +27,13 @@ namespace IntimacyAI.Server.Security
                 return;
             }
 
+            // If request is already authenticated via JWT, skip API key check
+            if (context.User?.Identity?.IsAuthenticated == true)
+            {
+                await _next(context);
+                return;
+            }
+
             if (string.IsNullOrEmpty(_expectedKey))
             {
                 if (_env.IsDevelopment())

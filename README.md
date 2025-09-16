@@ -84,6 +84,7 @@ k6 run -e API=http://localhost:8080 -e KEY=dev-key k6-loadtest.js
 export Security__ApiKey="<your-key>"
 export Security__EncryptionKey="<base64-32-bytes>"
 export CORS_ALLOWED_ORIGINS="https://app.example.com"
+export Jwt__SigningKey="<strong-random-64+ chars>"
 ```
 Note: if `Security:ApiKey` is not configured in Production, the API returns `503 API key not configured`.
 
@@ -103,6 +104,7 @@ GitHub Actions workflow under `.github/workflows/ci.yml` builds and tests on pus
   - HTTP: `HttpInference__BaseUrl=https://inference.internal`, optional `HttpInference__ApiKey`
 - Disable Swagger in production or protect it behind auth.
 - Enable logs/metrics and rotate persistent logs at the host level.
+- Use JWT auth by setting `Jwt__SigningKey` and preferring Bearer tokens over API keys.
 
 ## Windows WPF App
 Requires Windows with .NET 8 SDK and Windows 10 SDK.

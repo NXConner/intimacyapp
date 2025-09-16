@@ -11,6 +11,9 @@ using Microsoft.OpenApi.Models;
 using IntimacyAI.Server.DTOs;
 using IntimacyAI.Server.Services;
 using Serilog;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.IdentityModel.Tokens;
+using System.Text;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -64,6 +67,27 @@ builder.Services.AddRateLimiter(_ => _.AddFixedWindowLimiter("fixed", options =>
     options.PermitLimit = 20;
     options.QueueLimit = 0;
 }));
+// JWT auth
+var jwtSection = builder.Configuration.GetSection("Jwt");
+var signingKey = jwtSection.GetValue<string>("SigningKey") ?? string.Empty;
+if (!string.IsNullOrWhiteSpace(signingKey))
+{
+    var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(signingKey));
+    builder.Services
+        .AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
+        .AddJwtBearer(options =>
+        {
+            options.TokenValidationParameters = new TokenValidationParameters
+            {
+                ValidateIssuer = true,
+                ValidateAudience = true,
+                ValidateIssuerSigningKey = true,
+                ValidIssuer = jwtSection.GetValue<string>("Issuer") ?? "",
+                ValidAudience = jwtSection.GetValue<string>("Audience") ?? "",
+                IssuerSigningKey = key
+            };
+        });
+}
 builder.Services.AddSingleton<IAnalysisQueue, AnalysisQueue>();
 builder.Services.AddHostedService<AnalysisWorker>();
 builder.Services.AddSingleton<IEncryptionService, EncryptionService>();
@@ -123,6 +147,11 @@ app.Use(async (ctx, next) =>
     await next();
 });
 app.UseRateLimiter();
+if (!string.IsNullOrWhiteSpace(signingKey))
+{
+    app.UseAuthentication();
+    app.UseAuthorization();
+}
 app.UseMiddleware<ApiKeyMiddleware>();
 
 // Optional mock inference endpoint (unauthenticated) in Development only
@@ -131,12 +160,15 @@ if (app.Environment.IsDevelopment())
     HttpInferenceMockEndpoint.MapHttpInferenceMock(app);
 }
 
+// Auth endpoints
+AuthEndpoints.MapAuth(app);
+
 app.MapGet("/api/analytics", async (int? skip, int? take, AppDbContext db) =>
 {
     var s = Math.Max(0, skip ?? 0);
     var t = Math.Clamp(take ?? 50, 1, 200);
     return await db.UsageAnalytics.OrderByDescending(x => x.Id).Skip(s).Take(t).ToListAsync();
-}).WithOpenApi();
+}).WithOpenApi().RequireRateLimiting("fixed");
 
 app.MapPost("/api/analytics", async (UsageAnalytics payload, AppDbContext db) =>
 {
@@ -146,14 +178,14 @@ app.MapPost("/api/analytics", async (UsageAnalytics payload, AppDbContext db) =>
     db.UsageAnalytics.Add(payload);
     await db.SaveChangesAsync();
     return Results.Created($"/api/analytics/{payload.Id}", payload);
-}).WithOpenApi();
+}).WithOpenApi().RequireRateLimiting("fixed");
 
 app.MapGet("/api/model-performance", async (int? skip, int? take, AppDbContext db) =>
 {
     var s = Math.Max(0, skip ?? 0);
     var t = Math.Clamp(take ?? 50, 1, 200);
     return await db.ModelPerformances.OrderByDescending(x => x.Id).Skip(s).Take(t).ToListAsync();
-}).WithOpenApi();
+}).WithOpenApi().RequireRateLimiting("fixed");
 
 app.MapPost("/api/model-performance", async (ModelPerformance payload, AppDbContext db) =>
 {
@@ -161,7 +193,7 @@ app.MapPost("/api/model-performance", async (ModelPerformance payload, AppDbCont
     db.ModelPerformances.Add(payload);
     await db.SaveChangesAsync();
     return Results.Created($"/api/model-performance/{payload.Id}", payload);
-}).WithOpenApi();
+}).WithOpenApi().RequireRateLimiting("fixed");
 
 app.MapHub<AnalysisHub>("/hubs/analysis").RequireRateLimiting("fixed");
 
