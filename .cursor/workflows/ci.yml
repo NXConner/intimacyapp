@@ -1,0 +1,21 @@
+name: AI-Assisted CI/CD
+on: [push, pull_request]
+jobs:
+  ai_code_review:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Cursor AI Code Review
+        uses: cursor-ai/code-review-action@v1
+        with:
+          focus_areas: '["security", "performance", "privacy"]'
+  ai_test_generation:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Generate AI Tests
+        uses: cursor-ai/test-generation@v1
+        with:
+          coverage_target: 90
+          test_types: '["unit", "integration", "security"]'
+

@@ -14,6 +14,7 @@ using Serilog;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Tokens;
 using System.Text;
+using System.Security.Claims;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -91,6 +92,8 @@ if (!string.IsNullOrWhiteSpace(signingKey))
 builder.Services.AddSingleton<IAnalysisQueue, AnalysisQueue>();
 builder.Services.AddHostedService<AnalysisWorker>();
 builder.Services.AddSingleton<IEncryptionService, EncryptionService>();
+builder.Services.AddSingleton<IntimacyAI.Server.Services.ICoachingService, IntimacyAI.Server.Services.SimpleCoachingService>();
+builder.Services.AddSingleton<IntimacyAI.Server.Security.IKeyDerivationService, IntimacyAI.Server.Security.KeyDerivationService>();
 // Configure inference options and register the inference service implementation
 builder.Services.Configure<OnnxOptions>(builder.Configuration.GetSection("Onnx"));
 builder.Services.Configure<HttpInferenceOptions>(builder.Configuration.GetSection("HttpInference"));
@@ -367,5 +370,259 @@ app.MapPost("/mock-inference/v1/analyze-video", async (HttpRequest req) =>
     meta["fps"] = "24";
     meta["provider"] = "mock-http";
     return Results.Ok(new { Scores = scores, Metadata = meta });
+}).WithOpenApi();
+// ----------------------------
+// API v1 endpoints (versioned)
+// ----------------------------
+
+// Analysis (image)
+app.MapPost("/api/v1/analysis/image", async (HttpRequest request, IAnalysisQueue queue) =>
+{
+    if (!request.HasFormContentType &&
+        !(string.Equals(request.ContentType, "application/octet-stream", StringComparison.OrdinalIgnoreCase)))
+        return Results.BadRequest("multipart/form-data or application/octet-stream required");
+
+    byte[] data;
+    string fileName = "image";
+    string contentType = request.ContentType ?? string.Empty;
+    if (request.HasFormContentType)
+    {
+        var form = await request.ReadFormAsync();
+        var file = form.Files.GetFile("file");
+        if (file is null || file.Length == 0) return Results.BadRequest("file is required");
+        using var ms = new MemoryStream();
+        await file.CopyToAsync(ms);
+        data = ms.ToArray();
+        fileName = file.FileName;
+        contentType = file.ContentType ?? string.Empty;
+    }
+    else
+    {
+        using var ms = new MemoryStream();
+        await request.Body.CopyToAsync(ms);
+        data = ms.ToArray();
+    }
+
+    var req = new AnalysisRequest
+    {
+        AnalysisType = "image",
+        Data = data,
+        Metadata = new Dictionary<string, string> { { "filename", fileName }, { "contentType", contentType } }
+    };
+    queue.Enqueue(req);
+    return Results.Accepted($"/api/analysis/{req.SessionId}", new { sessionId = req.SessionId });
+}).DisableAntiforgery().RequireRateLimiting("fixed").WithOpenApi();
+
+// Analysis (video)
+app.MapPost("/api/v1/analysis/video", async (HttpRequest request, IAnalysisQueue queue) =>
+{
+    if (!request.HasFormContentType &&
+        !(string.Equals(request.ContentType, "application/octet-stream", StringComparison.OrdinalIgnoreCase)))
+        return Results.BadRequest("multipart/form-data or application/octet-stream required");
+
+    byte[] data;
+    string fileName = "video";
+    string contentType = request.ContentType ?? string.Empty;
+    if (request.HasFormContentType)
+    {
+        var form = await request.ReadFormAsync();
+        var file = form.Files.GetFile("file");
+        if (file is null || file.Length == 0) return Results.BadRequest("file is required");
+        using var ms = new MemoryStream();
+        await file.CopyToAsync(ms);
+        data = ms.ToArray();
+        fileName = file.FileName;
+        contentType = file.ContentType ?? string.Empty;
+    }
+    else
+    {
+        using var ms = new MemoryStream();
+        await request.Body.CopyToAsync(ms);
+        data = ms.ToArray();
+    }
+
+    var req = new AnalysisRequest
+    {
+        AnalysisType = "video",
+        Data = data,
+        Metadata = new Dictionary<string, string> { { "filename", fileName }, { "contentType", contentType } }
+    };
+    queue.Enqueue(req);
+    return Results.Accepted($"/api/analysis/{req.SessionId}", new { sessionId = req.SessionId });
+}).DisableAntiforgery().RequireRateLimiting("fixed").WithOpenApi();
+
+// Analysis history
+app.MapGet("/api/v1/analysis/history", async (string? sessionId, int? skip, int? take, AppDbContext db, IEncryptionService enc) =>
+{
+    var query = db.AnalysisHistories.AsQueryable();
+    if (!string.IsNullOrWhiteSpace(sessionId))
+        query = query.Where(x => x.SessionId == sessionId);
+    var s = Math.Max(0, skip ?? 0);
+    var t = Math.Clamp(take ?? 50, 1, 200);
+    var items = await query
+        .OrderByDescending(x => x.Id)
+        .Skip(s)
+        .Take(t)
+        .ToListAsync();
+    var list = new List<AnalysisResultDto>(items.Count);
+    foreach (var item in items)
+    {
+        Dictionary<string, object>? scores = null;
+        Dictionary<string, string>? metadata = null;
+        if (!string.IsNullOrWhiteSpace(item.ScoresJsonEncrypted))
+        {
+            var json = enc.Decrypt(item.ScoresJsonEncrypted!);
+            scores = System.Text.Json.JsonSerializer.Deserialize<Dictionary<string, object>>(json);
+        }
+        if (!string.IsNullOrWhiteSpace(item.MetadataJsonEncrypted))
+        {
+            var json = enc.Decrypt(item.MetadataJsonEncrypted!);
+            metadata = System.Text.Json.JsonSerializer.Deserialize<Dictionary<string, string>>(json);
+        }
+        list.Add(new AnalysisResultDto
+        {
+            SessionId = item.SessionId,
+            AnalysisType = item.AnalysisType,
+            Scores = scores,
+            Metadata = metadata,
+            CreatedAtUtc = item.CreatedAtUtc
+        });
+    }
+    return Results.Ok(list);
+}).RequireRateLimiting("fixed").WithOpenApi();
+
+// Coaching suggestions
+app.MapPost("/api/v1/coaching/suggestions", async (Dictionary<string, object> analysis, Services.ICoachingService coach) =>
+{
+    var suggestions = coach.GenerateSuggestions(analysis);
+    return Results.Ok(new { suggestions });
+}).RequireRateLimiting("fixed").WithOpenApi();
+
+// User preferences
+app.MapGet("/api/v1/user/preferences", async (ClaimsPrincipal user, string? userId, AppDbContext db, IEncryptionService enc) =>
+{
+    var uid = !string.IsNullOrWhiteSpace(userId) ? userId : (user.Identity?.Name ?? "anonymous");
+    var pref = await db.UserPreferences.OrderByDescending(x => x.Id).FirstOrDefaultAsync(x => x.UserId == uid);
+    if (pref is null) return Results.NotFound();
+    Dictionary<string, object>? prefs = null;
+    if (!string.IsNullOrWhiteSpace(pref.PreferencesJsonEncrypted))
+    {
+        var json = enc.Decrypt(pref.PreferencesJsonEncrypted!);
+        prefs = System.Text.Json.JsonSerializer.Deserialize<Dictionary<string, object>>(json);
+    }
+    return Results.Ok(new PreferencesDto { UserId = uid, Preferences = prefs });
+}).WithOpenApi();
+
+app.MapPut("/api/v1/user/preferences", async (ClaimsPrincipal user, Dictionary<string, object> payload, string? userId, AppDbContext db, IEncryptionService enc) =>
+{
+    var uid = !string.IsNullOrWhiteSpace(userId) ? userId : (user.Identity?.Name ?? "anonymous");
+    var json = System.Text.Json.JsonSerializer.Serialize(payload);
+    var encrypted = enc.Encrypt(json);
+    var now = DateTime.UtcNow;
+    var entity = await db.UserPreferences.FirstOrDefaultAsync(x => x.UserId == uid);
+    if (entity is null)
+    {
+        entity = new UserPreferences { UserId = uid, PreferencesJsonEncrypted = encrypted, CreatedAtUtc = now, UpdatedAtUtc = now };
+        db.UserPreferences.Add(entity);
+    }
+    else
+    {
+        entity.PreferencesJsonEncrypted = encrypted;
+        entity.UpdatedAtUtc = now;
+    }
+    await db.SaveChangesAsync();
+    return Results.Ok(new { status = "updated" });
+}).WithOpenApi();
+
+// Auth v1 endpoints
+app.MapPost("/api/v1/auth/login", (IntimacyAI.Server.Services.AuthEndpoints.LoginRequest req, IConfiguration cfg) =>
+{
+    if (string.IsNullOrWhiteSpace(req.Username) || string.IsNullOrWhiteSpace(req.Password))
+        return Results.BadRequest("username and password required");
+    if (!string.Equals(req.Password, "password"))
+        return Results.Unauthorized();
+    var issuer = cfg["Jwt:Issuer"] ?? "IntimacyAI";
+    var audience = cfg["Jwt:Audience"] ?? "IntimacyAI-Clients";
+    var key = cfg["Jwt:SigningKey"] ?? string.Empty;
+    if (string.IsNullOrWhiteSpace(key)) return Results.Problem("Jwt signing key not configured", statusCode: 500);
+    var creds = new Microsoft.IdentityModel.Tokens.SigningCredentials(new Microsoft.IdentityModel.Tokens.SymmetricSecurityKey(System.Text.Encoding.UTF8.GetBytes(key)), Microsoft.IdentityModel.Tokens.SecurityAlgorithms.HmacSha256);
+    var claims = new[] { new System.Security.Claims.Claim(System.Security.Claims.ClaimTypes.Name, req.Username) };
+    var token = new System.IdentityModel.Tokens.Jwt.JwtSecurityToken(issuer: issuer, audience: audience, claims: claims, expires: DateTime.UtcNow.AddHours(8), signingCredentials: creds);
+    var jwt = new System.IdentityModel.Tokens.Jwt.JwtSecurityTokenHandler().WriteToken(token);
+    return Results.Ok(new { access_token = jwt });
+}).WithOpenApi();
+
+app.MapPost("/api/v1/auth/refresh", (ClaimsPrincipal user, IConfiguration cfg) =>
+{
+    if (user?.Identity?.IsAuthenticated != true) return Results.Unauthorized();
+    var name = user.Identity!.Name ?? "user";
+    var issuer = cfg["Jwt:Issuer"] ?? "IntimacyAI";
+    var audience = cfg["Jwt:Audience"] ?? "IntimacyAI-Clients";
+    var key = cfg["Jwt:SigningKey"] ?? string.Empty;
+    if (string.IsNullOrWhiteSpace(key)) return Results.Problem("Jwt signing key not configured", statusCode: 500);
+    var creds = new Microsoft.IdentityModel.Tokens.SigningCredentials(new Microsoft.IdentityModel.Tokens.SymmetricSecurityKey(System.Text.Encoding.UTF8.GetBytes(key)), Microsoft.IdentityModel.Tokens.SecurityAlgorithms.HmacSha256);
+    var claims = new[] { new System.Security.Claims.Claim(System.Security.Claims.ClaimTypes.Name, name) };
+    var token = new System.IdentityModel.Tokens.Jwt.JwtSecurityToken(issuer: issuer, audience: audience, claims: claims, expires: DateTime.UtcNow.AddHours(8), signingCredentials: creds);
+    var jwt = new System.IdentityModel.Tokens.Jwt.JwtSecurityTokenHandler().WriteToken(token);
+    return Results.Ok(new { access_token = jwt });
+}).WithOpenApi();
+
+app.MapPost("/api/v1/auth/logout", () => Results.Ok(new { status = "logged_out" })).WithOpenApi();
+
+// Biometric auth stubs
+app.MapPost("/api/v1/auth/biometric/register", (string userId, string publicKey) =>
+{
+    // In production, persist and verify ownership. Here we accept and acknowledge.
+    return Results.Ok(new { status = "registered", userId });
+}).WithOpenApi();
+
+app.MapPost("/api/v1/auth/biometric/verify", (string userId, string signature) =>
+{
+    // In production, verify signature against registered public key. Here we accept.
+    return Results.Ok(new { status = "verified", userId });
+}).WithOpenApi();
+
+// Consent management using preferences store (embedded under key "consent")
+app.MapGet("/api/v1/privacy/consent", async (ClaimsPrincipal user, string? userId, AppDbContext db, IEncryptionService enc) =>
+{
+    var uid = !string.IsNullOrWhiteSpace(userId) ? userId : (user.Identity?.Name ?? "anonymous");
+    var pref = await db.UserPreferences.OrderByDescending(x => x.Id).FirstOrDefaultAsync(x => x.UserId == uid);
+    if (pref is null || string.IsNullOrWhiteSpace(pref.PreferencesJsonEncrypted)) return Results.Ok(new { userId = uid, consent = new { } });
+    var json = enc.Decrypt(pref.PreferencesJsonEncrypted!);
+    var dict = System.Text.Json.JsonSerializer.Deserialize<Dictionary<string, object>>(json) ?? new();
+    dict.TryGetValue("consent", out var consentObj);
+    return Results.Ok(new { userId = uid, consent = consentObj ?? new { } });
+}).WithOpenApi();
+
+app.MapPut("/api/v1/privacy/consent", async (ClaimsPrincipal user, Dictionary<string, object> consent, string? userId, AppDbContext db, IEncryptionService enc) =>
+{
+    var uid = !string.IsNullOrWhiteSpace(userId) ? userId : (user.Identity?.Name ?? "anonymous");
+    var pref = await db.UserPreferences.FirstOrDefaultAsync(x => x.UserId == uid);
+    Dictionary<string, object> dict;
+    if (pref is null || string.IsNullOrWhiteSpace(pref.PreferencesJsonEncrypted))
+    {
+        dict = new Dictionary<string, object>();
+    }
+    else
+    {
+        var existing = enc.Decrypt(pref.PreferencesJsonEncrypted!);
+        dict = System.Text.Json.JsonSerializer.Deserialize<Dictionary<string, object>>(existing) ?? new();
+    }
+    dict["consent"] = consent;
+    var updatedJson = System.Text.Json.JsonSerializer.Serialize(dict);
+    var encrypted = enc.Encrypt(updatedJson);
+    var now = DateTime.UtcNow;
+    if (pref is null)
+    {
+        pref = new UserPreferences { UserId = uid, PreferencesJsonEncrypted = encrypted, CreatedAtUtc = now, UpdatedAtUtc = now };
+        db.UserPreferences.Add(pref);
+    }
+    else
+    {
+        pref.PreferencesJsonEncrypted = encrypted;
+        pref.UpdatedAtUtc = now;
+    }
+    await db.SaveChangesAsync();
+    return Results.Ok(new { status = "updated", userId = uid });
 }).WithOpenApi();
 app.Run();
