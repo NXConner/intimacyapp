@@ -31,6 +31,7 @@ Ensure-Dotnet
 Set-Location (Join-Path $RepoRoot 'intimacy-ai/platform/windows/WpfApp')
 dotnet restore | Out-Host
 dotnet build -c Release | Out-Host
+dotnet publish -c Release -r win-x64 --self-contained false -o (Join-Path (Get-Location) 'publish/win-x64') | Out-Host
 
-Write-Host "[IntimacyAI] Windows install complete. Build artifacts in bin/Release." -ForegroundColor Green
+Write-Host "[IntimacyAI] Windows install complete. Build artifacts in bin/Release and publish/win-x64." -ForegroundColor Green
 
