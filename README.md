@@ -32,7 +32,15 @@ Inference configuration:
   - or via env vars: `Onnx__Enabled=true`, `Onnx__ModelPath=/absolute/path/model.onnx`
 - HTTP backend:
   - set `HttpInference:BaseUrl` and optionally `HttpInference:ApiKey`
-  - env vars: `HttpInference__BaseUrl`, `HttpInference__ApiKey`, `HttpInference__ApiKeyHeader`
+  - paths:
+    - `HttpInference:AnalyzeEndpointPath` (default `/v1/analyze`) for image analysis
+    - `HttpInference:AnalyzeVideoEndpointPath` (default `/v1/analyze-video`) for video analysis
+  - env vars:
+    - `HttpInference__BaseUrl`
+    - `HttpInference__ApiKey`
+    - `HttpInference__ApiKeyHeader`
+    - `HttpInference__AnalyzeEndpointPath`
+    - `HttpInference__AnalyzeVideoEndpointPath`
 The server requires a configured inference backend: ONNX if enabled, else HTTP if BaseUrl is set. If neither is configured, startup fails with an error.
 
 API security:
