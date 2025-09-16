@@ -31,4 +31,6 @@
 
 ## Deployment
 - Environment configs set (API key, CORS)
+- Docker images built and pushed (api, client)
+- Kubernetes manifests applied (or docker compose configured)
 - Backup and rollback plan ready

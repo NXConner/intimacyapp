@@ -52,6 +52,19 @@ Open http://localhost:5175
 - Unix: `./run.sh server|client|build|test`
 - Windows: `run.cmd server|client|build|test`
 
+### Docker
+
+```
+docker compose up --build
+# API: http://localhost:8080, Client: http://localhost:8081
+```
+
+### Load test (k6)
+
+```
+k6 run -e API=http://localhost:8080 -e KEY=dev-key k6-loadtest.js
+```
+
 ## Development
 - Solution file: `intimacy-ai/IntimacyAI.sln`
 - Projects:
@@ -75,7 +88,7 @@ export CORS_ALLOWED_ORIGINS="https://app.example.com"
 Note: if `Security:ApiKey` is not configured in Production, the API returns `503 API key not configured`.
 
 ## CI
-A simple GitHub Actions workflow builds the solution on pushes/PRs.
+GitHub Actions workflow under `.github/workflows/ci.yml` builds and tests on pushes/PRs.
 
 ## Production Hardening
 - Set secrets via environment variables (do not commit to files):

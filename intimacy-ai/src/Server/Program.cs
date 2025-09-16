@@ -9,8 +9,16 @@ using System.Threading.RateLimiting;
 using Microsoft.Extensions.Diagnostics.HealthChecks;
 using Microsoft.OpenApi.Models;
 using IntimacyAI.Server.DTOs;
+using IntimacyAI.Server.Services;
+using Serilog;
 
 var builder = WebApplication.CreateBuilder(args);
+
+// Serilog basic console logging
+builder.Host.UseSerilog((ctx, lc) => lc
+    .ReadFrom.Configuration(ctx.Configuration)
+    .Enrich.FromLogContext()
+    .WriteTo.Console());
 
 // Add services to the container.
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
@@ -93,6 +101,10 @@ if (app.Environment.IsDevelopment())
     app.UseSwagger();
     app.UseSwaggerUI();
 }
+else
+{
+    // Disable Swagger in production by default
+}
 
 // Ensure database is created and migrations are applied
 using (var scope = app.Services.CreateScope())
@@ -101,6 +113,7 @@ using (var scope = app.Services.CreateScope())
     db.Database.Migrate();
 }
 
+// In production, enforce explicit origins if provided; otherwise allow none
 app.UseCors("DefaultCors");
 app.Use(async (ctx, next) =>
 {
@@ -111,6 +124,12 @@ app.Use(async (ctx, next) =>
 });
 app.UseRateLimiter();
 app.UseMiddleware<ApiKeyMiddleware>();
+
+// Optional mock inference endpoint (unauthenticated) in Development only
+if (app.Environment.IsDevelopment())
+{
+    HttpInferenceMockEndpoint.MapHttpInferenceMock(app);
+}
 
 app.MapGet("/api/analytics", async (int? skip, int? take, AppDbContext db) =>
 {

@@ -30,8 +30,8 @@ namespace IntimacyAI.Server.Services
                 {
                     if (_queue.TryDequeue(out var req) && req is not null)
                     {
-                        // Notify job started
-                        await _hubContext.Clients.All.SendAsync("analysisStarted", req.SessionId, cancellationToken: stoppingToken);
+                        // Notify job started to session group
+                        await _hubContext.Clients.Group(req.SessionId).SendAsync("analysisStarted", req.SessionId, cancellationToken: stoppingToken);
 
                         // Run model inference via abstraction
                         using var scope = _services.CreateScope();
@@ -52,8 +52,8 @@ namespace IntimacyAI.Server.Services
                         db.AnalysisHistories.Add(record);
                         await db.SaveChangesAsync(stoppingToken);
 
-                        // Notify job completed
-                        await _hubContext.Clients.All.SendAsync("analysisCompleted", req.SessionId, cancellationToken: stoppingToken);
+                        // Notify job completed to session group
+                        await _hubContext.Clients.Group(req.SessionId).SendAsync("analysisCompleted", req.SessionId, cancellationToken: stoppingToken);
                     }
                     else
                     {

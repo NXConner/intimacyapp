@@ -97,11 +97,30 @@
             using var req = new HttpRequestMessage(HttpMethod.Post, "/api/analyze") { Content = content };
             if (!string.IsNullOrWhiteSpace(apiKey)) req.Headers.Add("X-API-Key", apiKey);
             using var res = await Http.SendAsync(req);
-            status = res.IsSuccessStatusCode ? "Uploaded" : $"Failed ({(int)res.StatusCode})";
+            if (res.IsSuccessStatusCode)
+            {
+                status = "Uploaded";
+                var json = await res.Content.ReadAsStringAsync();
+                var options = new System.Text.Json.JsonSerializerOptions { PropertyNameCaseInsensitive = true };
+                var accept = System.Text.Json.JsonSerializer.Deserialize<AcceptResponse>(json, options);
+                if (!string.IsNullOrWhiteSpace(accept?.sessionId) && hub is not null)
+                {
+                    await hub.InvokeAsync("JoinSession", accept.sessionId);
+                }
+            }
+            else
+            {
+                status = $"Failed ({(int)res.StatusCode})";
+            }
         }
         catch (Exception ex)
         {
             status = $"Error: {ex.Message}";
         }
+    }
+
+    private sealed class AcceptResponse
+    {
+        public string? sessionId { get; set; }
     }
 }

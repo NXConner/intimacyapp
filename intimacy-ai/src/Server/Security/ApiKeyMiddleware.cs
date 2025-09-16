@@ -21,7 +21,7 @@ namespace IntimacyAI.Server.Security
         public async Task InvokeAsync(HttpContext context)
         {
             var path = context.Request.Path.Value ?? string.Empty;
-            if (path.StartsWith("/swagger") || path.Equals("/health"))
+            if (path.StartsWith("/swagger") || path.Equals("/health") || path.Equals("/healthz"))
             {
                 await _next(context);
                 return;
