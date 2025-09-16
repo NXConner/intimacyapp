@@ -77,6 +77,20 @@ Note: if `Security:ApiKey` is not configured in Production, the API returns `503
 ## CI
 A simple GitHub Actions workflow builds the solution on pushes/PRs.
 
+## Production Hardening
+- Set secrets via environment variables (do not commit to files):
+  - `Security__ApiKey` = strong, random API key
+  - `Security__EncryptionKey` = Base64 for 32-byte key (AES-GCM)
+- Restrict allowed origins:
+  - `CORS_ALLOWED_ORIGINS="https://app.example.com,https://admin.example.com"`
+- Bind only on required interfaces/ports and front with a reverse proxy:
+  - `ASPNETCORE_URLS=http://0.0.0.0:5087`
+- Configure inference backend for prod:
+  - ONNX: `Onnx__Enabled=true`, `Onnx__ModelPath=/opt/models/model.onnx`
+  - HTTP: `HttpInference__BaseUrl=https://inference.internal`, optional `HttpInference__ApiKey`
+- Disable Swagger in production or protect it behind auth.
+- Enable logs/metrics and rotate persistent logs at the host level.
+
 ## Windows WPF App
 Requires Windows with .NET 8 SDK and Windows 10 SDK.
 
