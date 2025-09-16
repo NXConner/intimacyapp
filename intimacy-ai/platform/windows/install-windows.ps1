@@ -6,7 +6,7 @@ Write-Host "[IntimacyAI] Windows install starting..." -ForegroundColor Cyan
 
 # Ensure we run from repo root regardless of invocation path
 $ScriptDir = Split-Path -Parent $MyInvocation.MyCommand.Path
-$RepoRoot  = Resolve-Path (Join-Path $ScriptDir '..' '..' '..')
+$RepoRoot  = Resolve-Path (Join-Path $ScriptDir '..\..\..')
 Set-Location $RepoRoot
 
 # Prefer local .NET if present (matches README conventions)
