@@ -1,0 +1,61 @@
+@page "/coaching"
+@inject IntimacyAI.Client.Services.SettingsService AppSettingsService
+
+<h3>Coaching Suggestions</h3>
+
+<div class="mb-3">
+    <label>Session Id</label>
+    <input class="form-control" @bind="sessionId" />
+    <small>Use the session id from an analysis result</small>
+ </div>
+
+<div class="mb-3">
+    <label>Input (JSON)</label>
+    <textarea class="form-control" rows="6" @bind="inputJson"></textarea>
+    <small>Defaults to last analysis scores/metadata if available</small>
+ </div>
+
+<button class="btn btn-primary" @onclick="RequestCoaching">Get Coaching</button>
+<p>@message</p>
+
+@if (!string.IsNullOrWhiteSpace(outputJson))
+{
+    <h5>Suggestions</h5>
+    <pre>@outputJson</pre>
+}
+
+@code {
+    string? sessionId;
+    string? apiKey;
+    string? inputJson = "{\n  \"goals\": [\"improve lighting\", \"better framing\"]\n}";
+    string? outputJson;
+    string message = string.Empty;
+    [Inject] HttpClient Http { get; set; } = default!;
+
+    protected override async Task OnInitializedAsync()
+    {
+        apiKey = await AppSettingsService.GetApiKeyAsync();
+    }
+
+    private async Task RequestCoaching()
+    {
+        outputJson = null;
+        if (string.IsNullOrWhiteSpace(sessionId)) { message = "SessionId required"; return; }
+        Dictionary<string, object>? payload = null;
+        if (!string.IsNullOrWhiteSpace(inputJson))
+        {
+            payload = System.Text.Json.JsonSerializer.Deserialize<Dictionary<string, object>>(inputJson!);
+        }
+        using var req = new HttpRequestMessage(HttpMethod.Post, $"/api/coaching/{sessionId}")
+        {
+            Content = JsonContent.Create(payload ?? new Dictionary<string, object>())
+        };
+        if (!string.IsNullOrWhiteSpace(apiKey)) req.Headers.Add("X-API-Key", apiKey);
+        using var res = await Http.SendAsync(req);
+        message = res.IsSuccessStatusCode ? "Requested" : $"Failed: {(int)res.StatusCode}";
+        if (res.IsSuccessStatusCode)
+        {
+            outputJson = await res.Content.ReadAsStringAsync();
+        }
+    }
+}

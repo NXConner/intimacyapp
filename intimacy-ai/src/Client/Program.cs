@@ -19,7 +19,14 @@ builder.Services.AddScoped(async sp =>
     var svc = sp.GetRequiredService<SettingsService>();
     var stored = await svc.GetApiBaseUrlAsync();
     var baseUrl = string.IsNullOrWhiteSpace(stored) ? fallbackApiBase : stored;
-    return new HttpClient { BaseAddress = new Uri(baseUrl) };
+    var http = new HttpClient { BaseAddress = new Uri(baseUrl) };
+    // Attach JWT token if present
+    var token = await svc.GetValue("JwtToken");
+    if (!string.IsNullOrWhiteSpace(token))
+    {
+        http.DefaultRequestHeaders.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", token);
+    }
+    return http;
 });
 
 await builder.Build().RunAsync();

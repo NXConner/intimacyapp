@@ -18,7 +18,7 @@ class MainActivity: ComponentActivity(){
         setContent {
             MaterialTheme {
                 var status by remember { mutableStateOf("") }
-                var apiBase by remember { mutableStateOf(load("ApiBaseUrl") ?: "http://10.0.2.2:5087") }
+                var apiBase by remember { mutableStateOf(load("ApiBaseUrl") ?: "http://10.0.2.2:8080") }
                 var apiKey by remember { mutableStateOf(load("ApiKey") ?: "dev-key") }
                 Column {
                     OutlinedTextField(apiBase, { apiBase = it }, label={ Text("API Base URL") })

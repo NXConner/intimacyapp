@@ -1,0 +1,55 @@
+@page "/privacy"
+@inject IntimacyAI.Client.Services.SettingsService AppSettingsService
+
+<h3>Privacy</h3>
+
+<div class="mb-3">
+    <label>User ID</label>
+    <input class="form-control" @bind="userId" />
+    <small>Used for erase/export requests</small>
+ </div>
+
+<button class="btn btn-danger" @onclick="Erase">Erase My Data</button>
+<button class="btn btn-secondary ms-2" @onclick="Export">Export My Data</button>
+<p class="mt-2">@message</p>
+
+@if (!string.IsNullOrWhiteSpace(exportJson))
+{
+    <h5>Export</h5>
+    <pre>@exportJson</pre>
+}
+
+@code {
+    string? userId;
+    string? apiKey;
+    string message = string.Empty;
+    string? exportJson;
+    [Inject] HttpClient Http { get; set; } = default!;
+
+    protected override async Task OnInitializedAsync()
+    {
+        apiKey = await AppSettingsService.GetApiKeyAsync();
+        userId = await AppSettingsService.GetValue("UserId");
+    }
+
+    private async Task Erase()
+    {
+        if (string.IsNullOrWhiteSpace(userId)) { message = "UserId required"; return; }
+        using var req = new HttpRequestMessage(HttpMethod.Post, $"/api/privacy/erase?userId={Uri.EscapeDataString(userId!)}");
+        if (!string.IsNullOrWhiteSpace(apiKey)) req.Headers.Add("X-API-Key", apiKey);
+        using var res = await Http.SendAsync(req);
+        message = res.IsSuccessStatusCode ? "Erased" : $"Erase failed: {(int)res.StatusCode}";
+    }
+
+    private async Task Export()
+    {
+        exportJson = null;
+        if (string.IsNullOrWhiteSpace(userId)) { message = "UserId required"; return; }
+        using var req = new HttpRequestMessage(HttpMethod.Get, $"/api/privacy/export?userId={Uri.EscapeDataString(userId!)}");
+        if (!string.IsNullOrWhiteSpace(apiKey)) req.Headers.Add("X-API-Key", apiKey);
+        using var res = await Http.SendAsync(req);
+        if (!res.IsSuccessStatusCode) { message = $"Export failed: {(int)res.StatusCode}"; return; }
+        exportJson = await res.Content.ReadAsStringAsync();
+        message = "Exported";
+    }
+}

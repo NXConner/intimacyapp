@@ -1,0 +1,90 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: intimacy-ai-api
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: intimacy-ai-api
+  template:
+    metadata:
+      labels:
+        app: intimacy-ai-api
+    spec:
+      containers:
+        - name: api
+          image: intimacyai/api:latest
+          ports:
+            - containerPort: 8080
+          env:
+            - name: ASPNETCORE_ENVIRONMENT
+              value: "Production"
+            - name: Security__ApiKey
+              valueFrom:
+                secretKeyRef:
+                  name: intimacy-ai-secrets
+                  key: api-key
+            - name: Security__EncryptionKey
+              valueFrom:
+                secretKeyRef:
+                  name: intimacy-ai-secrets
+                  key: enc-key
+          readinessProbe:
+            httpGet:
+              path: /health
+              port: 8080
+            initialDelaySeconds: 5
+            periodSeconds: 5
+          livenessProbe:
+            httpGet:
+              path: /health
+              port: 8080
+            initialDelaySeconds: 30
+            periodSeconds: 10
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: intimacy-ai-api
+spec:
+  selector:
+    app: intimacy-ai-api
+  ports:
+    - port: 80
+      targetPort: 8080
+      protocol: TCP
+      name: http
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: intimacy-ai-client
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: intimacy-ai-client
+  template:
+    metadata:
+      labels:
+        app: intimacy-ai-client
+    spec:
+      containers:
+        - name: client
+          image: intimacyai/client:latest
+          ports:
+            - containerPort: 80
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: intimacy-ai-client
+spec:
+  selector:
+    app: intimacy-ai-client
+  ports:
+    - port: 80
+      targetPort: 80
+      protocol: TCP
+      name: http

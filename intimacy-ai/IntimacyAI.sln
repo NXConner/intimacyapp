@@ -1,4 +1,4 @@
-﻿
+
 Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 17
 VisualStudioVersion = 17.0.31903.59
@@ -12,6 +12,8 @@ EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "tests", "tests", "{476CC2C8-5573-4BEB-A73A-424D2F035003}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "IntimacyAI.Tests", "tests\IntimacyAI.Tests\IntimacyAI.Tests.csproj", "{84EE333A-A8AB-4761-AFBE-3620DA1C65B6}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "WpfApp", "platform/windows/WpfApp/WpfApp.csproj", "{12345678-1234-5678-1234-567812345678}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -34,10 +36,15 @@ Global
 		{84EE333A-A8AB-4761-AFBE-3620DA1C65B6}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{84EE333A-A8AB-4761-AFBE-3620DA1C65B6}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{84EE333A-A8AB-4761-AFBE-3620DA1C65B6}.Release|Any CPU.Build.0 = Release|Any CPU
+		{12345678-1234-5678-1234-567812345678}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{12345678-1234-5678-1234-567812345678}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{12345678-1234-5678-1234-567812345678}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{12345678-1234-5678-1234-567812345678}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(NestedProjects) = preSolution
 		{D35D30D4-8011-4D3F-ABD7-0ED37E203506} = {F88B54A8-178D-4109-B594-BC4D42605959}
 		{CA3C74E0-6FE2-4E9C-B76E-B791B528F6B0} = {F88B54A8-178D-4109-B594-BC4D42605959}
 		{84EE333A-A8AB-4761-AFBE-3620DA1C65B6} = {476CC2C8-5573-4BEB-A73A-424D2F035003}
+		{12345678-1234-5678-1234-567812345678} = {F88B54A8-178D-4109-B594-BC4D42605959}
 	EndGlobalSection
 EndGlobal
