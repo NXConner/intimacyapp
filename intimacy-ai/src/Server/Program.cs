@@ -202,15 +202,22 @@ app.MapPost("/api/analyze", async (HttpRequest request, IAnalysisQueue queue) =>
     if (file is null || file.Length == 0) return Results.BadRequest("file is required");
     using var ms = new MemoryStream();
     await file.CopyToAsync(ms);
+    var contentType = file.ContentType?.ToLowerInvariant() ?? string.Empty;
+    var isVideo = contentType.StartsWith("video/") || 
+                  file.FileName.EndsWith(".mp4", StringComparison.OrdinalIgnoreCase) ||
+                  file.FileName.EndsWith(".webm", StringComparison.OrdinalIgnoreCase) ||
+                  file.FileName.EndsWith(".mkv", StringComparison.OrdinalIgnoreCase) ||
+                  file.FileName.EndsWith(".mov", StringComparison.OrdinalIgnoreCase) ||
+                  file.FileName.EndsWith(".avi", StringComparison.OrdinalIgnoreCase);
     var req = new AnalysisRequest
     {
-        AnalysisType = "image",
+        AnalysisType = isVideo ? "video" : "image",
         Data = ms.ToArray(),
-        Metadata = new Dictionary<string, string> { { "filename", file.FileName } }
+        Metadata = new Dictionary<string, string> { { "filename", file.FileName }, { "contentType", file.ContentType ?? string.Empty } }
     };
     queue.Enqueue(req);
     return Results.Accepted($"/api/analysis/{req.SessionId}", new { sessionId = req.SessionId });
-}).DisableAntiforgery().RequireRateLimiting("fixed").WithMetadata(new Microsoft.AspNetCore.Mvc.RequestSizeLimitAttribute(20 * 1024 * 1024)).WithOpenApi();
+}).DisableAntiforgery().RequireRateLimiting("fixed").WithMetadata(new Microsoft.AspNetCore.Mvc.RequestSizeLimitAttribute(200 * 1024 * 1024)).WithOpenApi();
 
 app.MapGet("/api/analysis/{sessionId}", async (string sessionId, AppDbContext db, IEncryptionService enc) =>
 {
@@ -311,5 +318,54 @@ app.MapGet("/api/privacy/export", async (string userId, AppDbContext db) =>
 {
     var pref = await db.UserPreferences.OrderByDescending(x => x.Id).FirstOrDefaultAsync(x => x.UserId == userId);
     return Results.Ok(new { userId, preferencesEncrypted = pref?.PreferencesJsonEncrypted });
+}).WithOpenApi();
+
+// Mock inference endpoints for local testing
+app.MapPost("/mock-inference/v1/analyze", async (HttpRequest req) =>
+{
+    // Simulate simple image analysis
+    if (!req.HasFormContentType) return Results.BadRequest(new { error = "multipart/form-data required" });
+    var form = await req.ReadFormAsync();
+    var file = form.Files.GetFile("file");
+    if (file is null || file.Length == 0) return Results.BadRequest(new { error = "file is required" });
+    var meta = new Dictionary<string, string>();
+    foreach (var kv in form)
+    {
+        if (kv.Key.StartsWith("meta_")) meta[kv.Key.Substring(5)] = kv.Value!;
+    }
+    // Return deterministic mock scores
+    var scores = new Dictionary<string, object>
+    {
+        ["arousal"] = 0.42,
+        ["engagement"] = 0.73
+    };
+    meta["width"] = "224";
+    meta["height"] = "224";
+    meta["provider"] = "mock-http";
+    return Results.Ok(new { Scores = scores, Metadata = meta });
+}).WithOpenApi();
+
+app.MapPost("/mock-inference/v1/analyze-video", async (HttpRequest req) =>
+{
+    // Simulate simple video analysis
+    if (!req.HasFormContentType) return Results.BadRequest(new { error = "multipart/form-data required" });
+    var form = await req.ReadFormAsync();
+    var file = form.Files.GetFile("file");
+    if (file is null || file.Length == 0) return Results.BadRequest(new { error = "file is required" });
+    var meta = new Dictionary<string, string>();
+    foreach (var kv in form)
+    {
+        if (kv.Key.StartsWith("meta_")) meta[kv.Key.Substring(5)] = kv.Value!;
+    }
+    var scores = new Dictionary<string, object>
+    {
+        ["arousal"] = 0.55,
+        ["engagement"] = 0.66,
+        ["temporal_consistency"] = 0.88
+    };
+    meta["durationSeconds"] = "3";
+    meta["fps"] = "24";
+    meta["provider"] = "mock-http";
+    return Results.Ok(new { Scores = scores, Metadata = meta });
 }).WithOpenApi();
 app.Run();

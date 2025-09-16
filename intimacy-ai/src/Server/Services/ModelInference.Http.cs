@@ -10,6 +10,7 @@ namespace IntimacyAI.Server.Services
 		public string? ApiKeyHeader { get; set; } = "X-API-Key";
 		public string? ApiKey { get; set; }
 		public string AnalyzeEndpointPath { get; set; } = "/v1/analyze";
+		public string AnalyzeVideoEndpointPath { get; set; } = "/v1/analyze-video";
 		public int TimeoutSeconds { get; set; } = 30;
 	}
 
@@ -50,6 +51,49 @@ namespace IntimacyAI.Server.Services
 			}
 
 			var request = new HttpRequestMessage(HttpMethod.Post, _options.AnalyzeEndpointPath)
+			{
+				Content = form
+			};
+			if (!string.IsNullOrWhiteSpace(_options.ApiKey))
+			{
+				var headerName = string.IsNullOrWhiteSpace(_options.ApiKeyHeader) ? "X-API-Key" : _options.ApiKeyHeader!;
+				request.Headers.TryAddWithoutValidation(headerName, _options.ApiKey);
+			}
+
+			var response = await _httpClient.SendAsync(request, cancellationToken);
+			response.EnsureSuccessStatusCode();
+
+			var payload = await response.Content.ReadFromJsonAsync<HttpAnalyzeResponse>(cancellationToken: cancellationToken)
+				?? throw new InvalidOperationException("Empty response from inference backend");
+
+			return new ModelInferenceResult
+			{
+				Scores = payload.Scores ?? new Dictionary<string, object>(),
+				Metadata = payload.Metadata ?? new Dictionary<string, string>()
+			};
+		}
+
+		public async Task<ModelInferenceResult> AnalyzeVideoAsync(byte[] videoData, IDictionary<string, string>? metadata, CancellationToken cancellationToken = default)
+		{
+			if (string.IsNullOrWhiteSpace(_options.BaseUrl))
+			{
+				throw new InvalidOperationException("HttpInferenceOptions.BaseUrl is not configured");
+			}
+
+			using var form = new MultipartFormDataContent();
+			var fileContent = new ByteArrayContent(videoData);
+			fileContent.Headers.ContentType = new System.Net.Http.Headers.MediaTypeHeaderValue("video/mp4");
+			form.Add(fileContent, "file", metadata != null && metadata.TryGetValue("filename", out var fname) ? fname : "video.mp4");
+
+			if (metadata != null)
+			{
+				foreach (var kvp in metadata)
+				{
+					form.Add(new StringContent(kvp.Value ?? string.Empty), $"meta_{kvp.Key}");
+				}
+			}
+
+			var request = new HttpRequestMessage(HttpMethod.Post, _options.AnalyzeVideoEndpointPath)
 			{
 				Content = form
 			};

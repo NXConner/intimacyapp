@@ -36,17 +36,31 @@ namespace IntimacyAI.Server.Services
                         // Run model inference via abstraction
                         using var scope = _services.CreateScope();
                         var inference = scope.ServiceProvider.GetRequiredService<IModelInferenceService>();
-                        var inf = await inference.AnalyzeImageAsync(req.Data, req.Metadata, stoppingToken);
+                        ModelInferenceResult inf;
+                        if (string.Equals(req.AnalysisType, "video", StringComparison.OrdinalIgnoreCase))
+                        {
+                            inf = await inference.AnalyzeVideoAsync(req.Data, req.Metadata, stoppingToken);
+                        }
+                        else
+                        {
+                            inf = await inference.AnalyzeImageAsync(req.Data, req.Metadata, stoppingToken);
+                        }
 
                         var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
                         var enc = scope.ServiceProvider.GetRequiredService<IEncryptionService>();
+
+                        var mergedMetadata = new Dictionary<string, string>(req.Metadata ?? new Dictionary<string, string>());
+                        foreach (var kvp in inf.Metadata)
+                        {
+                            mergedMetadata[kvp.Key] = kvp.Value;
+                        }
 
                         var record = new AnalysisHistory
                         {
                             SessionId = req.SessionId,
                             AnalysisType = req.AnalysisType,
                             ScoresJsonEncrypted = enc.Encrypt(System.Text.Json.JsonSerializer.Serialize(inf.Scores)),
-                            MetadataJsonEncrypted = enc.Encrypt(System.Text.Json.JsonSerializer.Serialize(inf.Metadata)),
+                            MetadataJsonEncrypted = enc.Encrypt(System.Text.Json.JsonSerializer.Serialize(mergedMetadata)),
                             CreatedAtUtc = DateTime.UtcNow
                         };
                         db.AnalysisHistories.Add(record);

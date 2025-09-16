@@ -23,6 +23,7 @@ namespace IntimacyAI.Server.Services
     public interface IModelInferenceService
     {
         Task<ModelInferenceResult> AnalyzeImageAsync(byte[] imageData, IDictionary<string, string>? metadata, CancellationToken cancellationToken = default);
+        Task<ModelInferenceResult> AnalyzeVideoAsync(byte[] videoData, IDictionary<string, string>? metadata, CancellationToken cancellationToken = default);
     }
 
     
@@ -112,6 +113,11 @@ namespace IntimacyAI.Server.Services
             };
 
             return Task.FromResult(result);
+        }
+
+        public Task<ModelInferenceResult> AnalyzeVideoAsync(byte[] videoData, IDictionary<string, string>? metadata, CancellationToken cancellationToken = default)
+        {
+            throw new NotSupportedException("Video analysis is not supported by the ONNX backend.");
         }
 
         public void Dispose()
